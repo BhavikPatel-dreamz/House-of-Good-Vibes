@@ -2,6 +2,21 @@ import db from "../db.server";
 
 export type PageStatus = "draft" | "published";
 
+type PageRow = {
+  id: string;
+  title: string;
+  slug: string;
+  html: string;
+  json: string;
+  status: string;
+  description: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  ogImage: string | null;
+  keywords: string | null;
+  updatedAt: Date;
+};
+
 export type PageRecord = {
   id: string;
   title: string;
@@ -9,18 +24,35 @@ export type PageRecord = {
   html: string;
   json: string;
   status: PageStatus;
+  description: string;
+  seoTitle: string;
+  seoDescription: string;
+  ogImage: string;
+  keywords: string;
   updatedAt: string;
 };
 
-function serializePage(page: {
+/**
+ * Clean JSON shape consumed by the mobile app via the signed App Proxy.
+ * Excludes shop-internal fields and only exposes what a client needs to render.
+ */
+export type PublicPageRecord = {
   id: string;
   title: string;
   slug: string;
   html: string;
   json: string;
-  status: string;
-  updatedAt: Date;
-}): PageRecord {
+  description: string;
+  seo: {
+    title: string;
+    description: string;
+    ogImage: string;
+    keywords: string[];
+  };
+  updatedAt: string;
+};
+
+function serializePage(page: PageRow): PageRecord {
   return {
     id: page.id,
     title: page.title,
@@ -28,6 +60,37 @@ function serializePage(page: {
     html: page.html,
     json: page.json,
     status: page.status as PageStatus,
+    description: page.description ?? "",
+    seoTitle: page.seoTitle ?? "",
+    seoDescription: page.seoDescription ?? "",
+    ogImage: page.ogImage ?? "",
+    keywords: page.keywords ?? "",
+    updatedAt: page.updatedAt.toISOString(),
+  };
+}
+
+function parseKeywords(value: string | null): string[] {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((keyword) => keyword.trim())
+    .filter(Boolean);
+}
+
+export function serializePublicPage(page: PageRow): PublicPageRecord {
+  return {
+    id: page.id,
+    title: page.title,
+    slug: page.slug,
+    html: page.html,
+    json: page.json,
+    description: page.description ?? "",
+    seo: {
+      title: page.seoTitle || page.title,
+      description: page.seoDescription || page.description || "",
+      ogImage: page.ogImage ?? "",
+      keywords: parseKeywords(page.keywords),
+    },
     updatedAt: page.updatedAt.toISOString(),
   };
 }
@@ -39,6 +102,16 @@ export async function listPages(shop: string) {
   });
 
   return pages.map(serializePage);
+}
+
+/** Published pages only — used by the public mobile API (list endpoint). */
+export async function listPublishedPages(shop: string) {
+  const pages = await db.page.findMany({
+    where: { shop, status: "published" },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  return pages.map(serializePublicPage);
 }
 
 export async function getPageById(shop: string, id: string) {
@@ -57,6 +130,15 @@ export async function getPageBySlug(shop: string, slug: string) {
   return page ? serializePage(page) : null;
 }
 
+/** Published page by slug as a public JSON record (mobile API single endpoint). */
+export async function getPublishedPageBySlug(shop: string, slug: string) {
+  const page = await db.page.findFirst({
+    where: { shop, slug, status: "published" },
+  });
+
+  return page ? serializePublicPage(page) : null;
+}
+
 function slugify(value: string) {
   return value
     .toLowerCase()
@@ -66,6 +148,14 @@ function slugify(value: string) {
     .slice(0, 120);
 }
 
+export type PageMetaInput = {
+  description?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  ogImage?: string;
+  keywords?: string;
+};
+
 export async function createPage(
   shop: string,
   data: {
@@ -74,7 +164,7 @@ export async function createPage(
     html: string;
     json: string;
     status?: PageStatus;
-  },
+  } & PageMetaInput,
 ) {
   const slug = slugify(data.slug || data.title) || "page";
 
@@ -92,6 +182,11 @@ export async function createPage(
       html: data.html,
       json: data.json,
       status: data.status ?? "draft",
+      description: data.description,
+      seoTitle: data.seoTitle,
+      seoDescription: data.seoDescription,
+      ogImage: data.ogImage,
+      keywords: data.keywords,
     },
   });
 
@@ -107,7 +202,7 @@ export async function updatePage(
     html?: string;
     json?: string;
     status?: PageStatus;
-  },
+  } & PageMetaInput,
 ) {
   const existing = await db.page.findFirst({
     where: { id, shop },
@@ -137,6 +232,11 @@ export async function updatePage(
       html: data.html,
       json: data.json,
       status: data.status,
+      description: data.description,
+      seoTitle: data.seoTitle,
+      seoDescription: data.seoDescription,
+      ogImage: data.ogImage,
+      keywords: data.keywords,
     },
   });
 

@@ -26,6 +26,12 @@ export default function CmsEditPage() {
       previewSlug={page.slug}
       initialTitle={page.title}
       initialContent={page.json || page.html}
+      initialSlug={page.slug}
+      initialDescription={page.description}
+      initialSeoTitle={page.seoTitle}
+      initialSeoDescription={page.seoDescription}
+      initialOgImage={page.ogImage}
+      initialKeywords={page.keywords}
     />
   );
 }

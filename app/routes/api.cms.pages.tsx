@@ -26,6 +26,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       html: body.html,
       json: typeof body.json === "string" ? body.json : JSON.stringify(body.json),
       status: body.status,
+      description: body.description,
+      seoTitle: body.seoTitle,
+      seoDescription: body.seoDescription,
+      ogImage: body.ogImage,
+      keywords: body.keywords,
     });
 
     return Response.json(page, { status: 201 });

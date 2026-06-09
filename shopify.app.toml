@@ -26,6 +26,16 @@ scopes = "write_metaobject_definitions,write_metaobjects,write_products,read_fil
 [auth]
 redirect_urls = [ "https://b2b.dynamicdreamz.com/api/auth" ]
 
+# App Proxy: storefront/mobile requests to
+#   https://{shop}.myshopify.com/apps/cms/...
+# are signed by Shopify and forwarded to
+#   https://b2b.dynamicdreamz.com/proxy/...
+# The mobile app fetches published page JSON through these signed URLs.
+[app_proxy]
+url = "https://b2b.dynamicdreamz.com/proxy"
+subpath = "cms"
+prefix = "apps"
+
 [product.metafields.app.demo_info]
 type = "single_line_text_field"
 name = "Demo Source Info"

@@ -34,15 +34,20 @@ model Session {
 }
 
 model Page {
-  id        String   @id @default(cuid())
-  shop      String
-  title     String
-  slug      String
-  html      String   @db.Text
-  json      String   @db.Text
-  status    String   @default("draft")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  shop           String
+  title          String
+  slug           String
+  html           String   @db.Text
+  json           String   @db.Text
+  status         String   @default("draft")
+  description    String?  @db.Text
+  seoTitle       String?
+  seoDescription String?  @db.Text
+  ogImage        String?
+  keywords       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@unique([shop, slug])
   @@index([shop])

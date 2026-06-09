@@ -31,3 +31,9 @@ declare module "gutenberg-block-kit/renderer" {
 }
 
 declare module "gutenberg-block-kit/styles";
+
+declare module "gutenberg-block-kit/vite" {
+  import type { Plugin } from "vite";
+
+  export function gutenbergBlockKitVite(...args: unknown[]): Plugin | Plugin[];
+}

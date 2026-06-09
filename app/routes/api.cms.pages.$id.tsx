@@ -56,6 +56,11 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
             ? body.json
             : JSON.stringify(body.json),
       status: body.status,
+      description: body.description,
+      seoTitle: body.seoTitle,
+      seoDescription: body.seoDescription,
+      ogImage: body.ogImage,
+      keywords: body.keywords,
     });
 
     if (!page) {
