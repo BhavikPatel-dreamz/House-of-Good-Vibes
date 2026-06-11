@@ -42,7 +42,7 @@
 }
 
 /* Mobile top app bar: hamburger + title + search / wishlist / cart icons. */
-.cms-editor-shell .builder-wrapper .editor-canvas::before {
+.cms-editor-shell  .editor-canvas::before {
   content: "";
   display: block;
   flex: none;

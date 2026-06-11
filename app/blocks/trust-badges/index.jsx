@@ -137,23 +137,27 @@ function registerTrustBadgesItem() {
             </PanelBody>
           </InspectorControls>
 
-          <div
-            {...blockProps}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '12px',
-              textAlign: 'center',
-            }}
-          >
+          <div {...blockProps}>
             {icon ? (
-              <img
-                src={icon}
-                alt=""
-                style={{ width: '48px', height: '48px', objectFit: 'contain' }}
-              />
+              <MediaUploadCheck>
+                <MediaUpload
+                  onSelect={(media) => setAttributes({ icon: media?.url ?? '' })}
+                  allowedTypes={['image']}
+                  render={({ open }) => (
+                    <img
+                      src={icon}
+                      alt=""
+                      className="riyasat-trust-badges-item-editor__icon"
+                      onClick={open}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') open();
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    />
+                  )}
+                />
+              </MediaUploadCheck>
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
@@ -162,20 +166,9 @@ function registerTrustBadgesItem() {
                   render={({ open }) => (
                     <button
                       type="button"
+                      className="riyasat-trust-badges-item-editor__icon-btn"
                       onClick={open}
-                      style={{
-                        width: '48px',
-                        height: '48px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: '#fff',
-                        background: '#2a2a4a',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '20px',
-                      }}
+                      aria-label="Add badge icon"
                     >
                       +
                     </button>
@@ -183,11 +176,12 @@ function registerTrustBadgesItem() {
                 />
               </MediaUploadCheck>
             )}
-            <TextControl
-              label=""
+            <input
+              type="text"
+              className="riyasat-trust-badges-item-editor__label"
               value={label}
               placeholder="Badge label…"
-              onChange={(value) => setAttributes({ label: value })}
+              onChange={(event) => setAttributes({ label: event.target.value })}
             />
           </div>
         </>
@@ -255,15 +249,7 @@ function registerTrustBadgesParent() {
           <div {...blockProps}>
             <div
               className="riyasat-trust-badges"
-              style={{
-                background: backgroundColor,
-                display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: 'center',
-                gap: '24px',
-                padding: '24px',
-                borderRadius: '8px',
-              }}
+              style={{ background: backgroundColor }}
             >
               <InnerBlocks
                 allowedBlocks={[TRUST_BADGES_ITEM_BLOCK]}
@@ -274,6 +260,7 @@ function registerTrustBadgesParent() {
                 ]}
                 templateLock={false}
                 renderAppender={InnerBlocks.ButtonBlockAppender}
+                orientation="horizontal"
               />
             </div>
           </div>

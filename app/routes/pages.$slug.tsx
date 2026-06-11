@@ -4,12 +4,14 @@ import { BlockRenderer } from "gutenberg-block-kit/renderer";
 
 import blockLibraryStyles from "@wordpress/block-library/build-style/style.css?url";
 import riyasatCarouselStyles from "../blocks/riyasat/image-carousel.css?url";
+import riyasatTrustBadgesStyles from "../blocks/riyasat/trust-badges.css?url";
 
 import { getPageBySlug } from "../lib/cms.server";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: blockLibraryStyles },
   { rel: "stylesheet", href: riyasatCarouselStyles },
+  { rel: "stylesheet", href: riyasatTrustBadgesStyles },
 ];
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {

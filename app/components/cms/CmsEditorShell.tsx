@@ -105,6 +105,7 @@ export function CmsEditorShell({
   useEffect(() => {
     import("gutenberg-block-kit/styles");
     import("../../blocks/riyasat/image-carousel.css");
+    import("../../blocks/riyasat/trust-badges.css");
     // Client-only: registers riyasat blocks via the kit's registerBlocks() hook.
     // Imported here (not at module top) so the @wordpress runtime never loads
     // during SSR — registerBlocks queues until the editor's registry inits.
