@@ -13,6 +13,8 @@ export type MediaItem = {
   alt?: string;
   title?: string;
   mimeType?: string;
+  width?: number;
+  height?: number;
 };
 
 type ListImagesInput = {
@@ -31,7 +33,13 @@ type ListImagesResult = {
 
 const LIST_FILES_QUERY = `#graphql
   query CmsListFiles($first: Int!, $after: String, $query: String) {
-    files(first: $first, after: $after, query: $query) {
+    files(
+      first: $first
+      after: $after
+      query: $query
+      sortKey: CREATED_AT
+      reverse: true
+    ) {
       pageInfo {
         hasNextPage
         endCursor
@@ -41,15 +49,13 @@ const LIST_FILES_QUERY = `#graphql
           id
           alt
           ... on MediaImage {
+            mimeType
             image {
               url
               altText
+              width
+              height
             }
-            mimeType
-          }
-          ... on GenericFile {
-            url
-            mimeType
           }
         }
       }
@@ -104,7 +110,12 @@ function toMediaItem(node: {
   id: string;
   alt?: string | null;
   mimeType?: string | null;
-  image?: { url?: string | null; altText?: string | null } | null;
+  image?: {
+    url?: string | null;
+    altText?: string | null;
+    width?: number | null;
+    height?: number | null;
+  } | null;
   url?: string | null;
 }): MediaItem | null {
   const url = node.image?.url || node.url;
@@ -119,6 +130,8 @@ function toMediaItem(node: {
     alt: node.image?.altText || node.alt || undefined,
     title: node.alt || undefined,
     mimeType: node.mimeType || undefined,
+    width: node.image?.width ?? undefined,
+    height: node.image?.height ?? undefined,
   };
 }
 
@@ -127,7 +140,10 @@ export async function listImages(
   shop: string,
   { page, perPage, search = "" }: ListImagesInput,
 ): Promise<ListImagesResult> {
-  const query = search.trim() ? `filename:*${search.trim()}*` : undefined;
+  const term = search.trim();
+  const query = term
+    ? `media_type:IMAGE AND filename:*${term}*`
+    : "media_type:IMAGE";
   const targetIndex = (page - 1) * perPage;
 
   let after: string | undefined;
