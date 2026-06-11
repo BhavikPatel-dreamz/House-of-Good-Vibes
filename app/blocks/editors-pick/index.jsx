@@ -2,6 +2,7 @@
 // Editor's Pick — parent (core/editors-pick) + child card
 // (core/editors-pick-item) using InnerBlocks. Authored against the kit's shared
 // @wordpress runtime; registered from ../index.ts.
+import { useState, useEffect } from 'gutenberg-block-kit/wp/element';
 import { registerBlockType } from 'gutenberg-block-kit/wp/blocks';
 import {
   useBlockProps,
@@ -15,8 +16,10 @@ import {
   PanelBody,
   TextControl,
   TextareaControl,
+  ToggleControl,
   Button,
 } from 'gutenberg-block-kit/wp/components';
+import { useSelect } from 'gutenberg-block-kit/wp/data';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import {
   EDITORS_PICK_BLOCK,
@@ -151,28 +154,27 @@ function registerEditorsPickItem() {
             </PanelBody>
           </InspectorControls>
 
-          <div
-            {...blockProps}
-            style={{
-              width: '220px',
-              flexShrink: 0,
-              background: '#fff',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              border: '1px solid rgba(0,0,0,0.08)',
-            }}
-          >
+          <div {...blockProps}>
             {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt=""
-                style={{
-                  width: '100%',
-                  height: '200px',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-              />
+              <MediaUploadCheck>
+                <MediaUpload
+                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  allowedTypes={['image']}
+                  render={({ open }) => (
+                    <img
+                      src={imageUrl}
+                      alt=""
+                      className="riyasat-editors-pick-item-editor__image"
+                      onClick={open}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') open();
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    />
+                  )}
+                />
+              </MediaUploadCheck>
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
@@ -181,18 +183,8 @@ function registerEditorsPickItem() {
                   render={({ open }) => (
                     <button
                       type="button"
+                      className="riyasat-editors-pick-item-editor__image-btn"
                       onClick={open}
-                      style={{
-                        width: '100%',
-                        height: '200px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: '#fff',
-                        background: '#2a2a4a',
-                        border: 'none',
-                      }}
                     >
                       Add image
                     </button>
@@ -200,33 +192,24 @@ function registerEditorsPickItem() {
                 />
               </MediaUploadCheck>
             )}
-            <div style={{ padding: '12px' }}>
-              <TextControl
-                label=""
+
+            <div className="riyasat-editors-pick-item-editor__body">
+              <input
+                type="text"
+                className="riyasat-editors-pick-item-editor__field"
                 value={title}
                 placeholder="Title…"
-                onChange={(value) => setAttributes({ title: value })}
+                onChange={(event) => setAttributes({ title: event.target.value })}
               />
-              <TextareaControl
-                label=""
+              <textarea
+                className="riyasat-editors-pick-item-editor__field riyasat-editors-pick-item-editor__field--textarea"
                 value={description}
-                rows={2}
                 placeholder="Description…"
-                onChange={(value) => setAttributes({ description: value })}
+                rows={3}
+                onChange={(event) => setAttributes({ description: event.target.value })}
               />
               {buttonText ? (
-                <span
-                  style={{
-                    display: 'inline-block',
-                    marginTop: '8px',
-                    padding: '8px 18px',
-                    background: '#1a1a2e',
-                    color: '#fff',
-                    borderRadius: '6px',
-                    fontWeight: 600,
-                    fontSize: '13px',
-                  }}
-                >
+                <span className="riyasat-editors-pick-item-editor__button">
                   {buttonText}
                 </span>
               ) : null}
@@ -279,11 +262,25 @@ function registerEditorsPickParent() {
       subTitle: { type: 'string', default: '' },
       backgroundColor: { type: 'string', default: DEFAULT_BACKGROUND },
       action: { type: 'object', default: {} },
+      showPagination: { type: 'boolean', default: true },
     },
 
-    edit: ({ attributes, setAttributes }) => {
-      const { title, subTitle, backgroundColor, action } = attributes;
+    edit: ({ attributes, setAttributes, clientId }) => {
+      const { title, subTitle, backgroundColor, action, showPagination } = attributes;
       const blockProps = useBlockProps({ className: 'riyasat-editors-pick-editor' });
+      const [activeIndex, setActiveIndex] = useState(0);
+      const cardCount = useSelect(
+        (select) => select('core/block-editor').getBlockCount(clientId),
+        [clientId],
+      );
+
+      useEffect(() => {
+        if (cardCount <= 0) {
+          setActiveIndex(0);
+          return;
+        }
+        if (activeIndex > cardCount - 1) setActiveIndex(cardCount - 1);
+      }, [activeIndex, cardCount]);
 
       return (
         <>
@@ -298,6 +295,14 @@ function registerEditorsPickParent() {
                 label="Subtitle"
                 value={subTitle}
                 onChange={(value) => setAttributes({ subTitle: value })}
+              />
+            </PanelBody>
+
+            <PanelBody title="Settings" initialOpen={true}>
+              <ToggleControl
+                label="Show pagination"
+                checked={showPagination}
+                onChange={(value) => setAttributes({ showPagination: value })}
               />
             </PanelBody>
 
@@ -325,35 +330,20 @@ function registerEditorsPickParent() {
           <div {...blockProps}>
             <div
               className="riyasat-editors-pick"
-              style={{
-                background: backgroundColor,
-                padding: '24px',
-                borderRadius: '8px',
-              }}
+              style={{ background: backgroundColor }}
             >
-              <div className="riyasat-editors-pick__heading">
-                {subTitle ? (
-                  <p
-                    className="riyasat-editors-pick__subtitle"
-                    style={{ margin: '0 0 4px', color: '#888', fontSize: '13px' }}
-                  >
-                    {subTitle}
-                  </p>
-                ) : null}
-                {title ? (
-                  <h3
-                    className="riyasat-editors-pick__title"
-                    style={{ margin: '0 0 16px', fontSize: '22px', fontWeight: 700 }}
-                  >
-                    {title}
-                  </h3>
-                ) : null}
-              </div>
+              {(subTitle || title) && (
+                <div className="riyasat-editors-pick__heading">
+                  {subTitle ? (
+                    <p className="riyasat-editors-pick__subtitle">{subTitle}</p>
+                  ) : null}
+                  {title ? (
+                    <h3 className="riyasat-editors-pick__title">{title}</h3>
+                  ) : null}
+                </div>
+              )}
 
-              <div
-                className="riyasat-editors-pick__track"
-                style={{ display: 'flex', gap: '16px', overflowX: 'auto' }}
-              >
+              <div className="riyasat-editors-pick__track">
                 <InnerBlocks
                   allowedBlocks={[EDITORS_PICK_ITEM_BLOCK]}
                   template={[
@@ -365,6 +355,22 @@ function registerEditorsPickParent() {
                   orientation="horizontal"
                 />
               </div>
+
+              {showPagination && cardCount > 1 ? (
+                <div className="riyasat-editors-pick__pagination">
+                  {Array.from({ length: cardCount }).map((_, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className={`riyasat-editors-pick__dot${
+                        index === activeIndex ? ' is-active' : ''
+                      }`}
+                      aria-label={`Go to card ${index + 1}`}
+                      onClick={() => setActiveIndex(index)}
+                    />
+                  ))}
+                </div>
+              ) : null}
             </div>
           </div>
         </>
@@ -372,11 +378,12 @@ function registerEditorsPickParent() {
     },
 
     save: ({ attributes }) => {
-      const { title, subTitle, backgroundColor, action } = attributes;
+      const { title, subTitle, backgroundColor, action, showPagination } = attributes;
       const blockProps = useBlockProps.save({
         className: 'riyasat-editors-pick',
         'data-background-color': backgroundColor,
         'data-action': JSON.stringify(action ?? {}),
+        'data-show-pagination': showPagination ? 'true' : 'false',
         style: { background: backgroundColor },
       });
       return (
@@ -392,6 +399,9 @@ function registerEditorsPickParent() {
           <div className="riyasat-editors-pick__track">
             <InnerBlocks.Content />
           </div>
+          {showPagination ? (
+            <div className="riyasat-editors-pick__pagination" aria-hidden="true" />
+          ) : null}
         </div>
       );
     },

@@ -110,6 +110,8 @@ export function CmsEditorShell({
     import("../../blocks/riyasat/shop-the-look.css");
     import("../../blocks/riyasat/product-scroller.css");
     import("../../blocks/riyasat/free-consultation.css");
+    import("../../blocks/riyasat/editors-pick.css");
+    import("../../blocks/riyasat/client-stories.css");
     // Client-only: registers riyasat blocks via the kit's registerBlocks() hook.
     // Imported here (not at module top) so the @wordpress runtime never loads
     // during SSR — registerBlocks queues until the editor's registry inits.

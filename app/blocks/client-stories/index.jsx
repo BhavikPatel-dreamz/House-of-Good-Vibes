@@ -46,6 +46,11 @@ function ClientStoriesIcon() {
   );
 }
 
+function renderStars(rating) {
+  const count = Math.max(0, Math.min(5, parseInt(rating, 10) || 0));
+  return '★'.repeat(count);
+}
+
 // ---------------------------------------------------------------------------
 // Child: core/client-stories-item — one testimonial card
 // ---------------------------------------------------------------------------
@@ -165,72 +170,45 @@ function registerClientStoriesItem() {
             </PanelBody>
           </InspectorControls>
 
-          <div
-            {...blockProps}
-            style={{
-              width: '260px',
-              flexShrink: 0,
-              background: '#fff',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              border: '1px solid rgba(0,0,0,0.08)',
-              padding: '16px',
-            }}
-          >
+          <div {...blockProps}>
             {rating ? (
-              <div
-                className="riyasat-client-stories__rating"
-                style={{ color: '#f5a623', fontSize: '14px', marginBottom: '6px' }}
-              >
-                {'★'.repeat(Math.max(0, Math.min(5, parseInt(rating, 10) || 0)))}
-                <span style={{ color: '#888', marginLeft: '4px' }}>{rating}</span>
+              <div className="riyasat-client-stories-item-editor__rating">
+                {renderStars(rating)}
+                <span className="riyasat-client-stories-item-editor__rating-value">
+                  {rating}
+                </span>
               </div>
             ) : null}
-            <TextControl
-              label=""
+            <textarea
+              className="riyasat-client-stories-item-editor__field riyasat-client-stories-item-editor__field--review"
               value={review}
               placeholder="Review…"
-              onChange={(value) => setAttributes({ review: value })}
+              rows={3}
+              onChange={(event) => setAttributes({ review: event.target.value })}
             />
             {imageUrl ? (
               <img
                 src={imageUrl}
                 alt=""
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '999px',
-                  objectFit: 'cover',
-                  display: 'block',
-                  margin: '8px 0',
-                }}
+                className="riyasat-client-stories-item-editor__image"
               />
             ) : null}
-            <TextControl
-              label=""
+            <input
+              type="text"
+              className="riyasat-client-stories-item-editor__field"
               value={reviewerName}
               placeholder="Reviewer name…"
-              onChange={(value) => setAttributes({ reviewerName: value })}
+              onChange={(event) => setAttributes({ reviewerName: event.target.value })}
             />
-            <TextControl
-              label=""
+            <input
+              type="text"
+              className="riyasat-client-stories-item-editor__field"
               value={city}
               placeholder="City…"
-              onChange={(value) => setAttributes({ city: value })}
+              onChange={(event) => setAttributes({ city: event.target.value })}
             />
             {buttonText ? (
-              <span
-                style={{
-                  display: 'inline-block',
-                  marginTop: '8px',
-                  padding: '8px 18px',
-                  background: '#1a1a2e',
-                  color: '#fff',
-                  borderRadius: '6px',
-                  fontWeight: 600,
-                  fontSize: '13px',
-                }}
-              >
+              <span className="riyasat-client-stories-item-editor__button">
                 {buttonText}
               </span>
             ) : null}
@@ -278,13 +256,13 @@ function registerClientStoriesItem() {
 }
 
 // ---------------------------------------------------------------------------
-// Parent: core/client-stories — heading + row of testimonial cards
+// Parent: core/client-stories — heading + horizontal row of testimonial cards
 // ---------------------------------------------------------------------------
 function registerClientStoriesParent() {
   registerBlockType(CLIENT_STORIES_BLOCK, {
     apiVersion: 3,
     title: 'Client Stories',
-    description: 'A titled row of customer testimonials on a colored background.',
+    description: 'A titled, horizontally scrolling row of customer testimonials.',
     category: RIYASAT_CATEGORY,
     icon: ClientStoriesIcon,
     keywords: ['client', 'stories', 'testimonials', 'reviews', 'customers'],
@@ -302,18 +280,18 @@ function registerClientStoriesParent() {
         attributes;
       const blockProps = useBlockProps({ className: 'riyasat-client-stories-editor' });
       const [activeIndex, setActiveIndex] = useState(0);
-      const slideCount = useSelect(
+      const storyCount = useSelect(
         (select) => select('core/block-editor').getBlockCount(clientId),
         [clientId],
       );
 
       useEffect(() => {
-        if (slideCount <= 0) {
+        if (storyCount <= 0) {
           setActiveIndex(0);
           return;
         }
-        if (activeIndex > slideCount - 1) setActiveIndex(slideCount - 1);
-      }, [activeIndex, slideCount]);
+        if (activeIndex > storyCount - 1) setActiveIndex(storyCount - 1);
+      }, [activeIndex, storyCount]);
 
       return (
         <>
@@ -363,38 +341,20 @@ function registerClientStoriesParent() {
           <div {...blockProps}>
             <div
               className="riyasat-client-stories"
-              style={{
-                background: backgroundColor,
-                padding: '24px',
-                borderRadius: '8px',
-              }}
+              style={{ background: backgroundColor }}
             >
-              <div
-                className="riyasat-client-stories__heading"
-                style={{ textAlign: 'center' }}
-              >
-                {subTitle ? (
-                  <p
-                    className="riyasat-client-stories__subtitle"
-                    style={{ margin: '0 0 4px', color: '#888', fontSize: '13px' }}
-                  >
-                    {subTitle}
-                  </p>
-                ) : null}
-                {title ? (
-                  <h3
-                    className="riyasat-client-stories__title"
-                    style={{ margin: '0 0 16px', fontSize: '22px', fontWeight: 700 }}
-                  >
-                    {title}
-                  </h3>
-                ) : null}
-              </div>
+              {(subTitle || title) && (
+                <div className="riyasat-client-stories__heading">
+                  {subTitle ? (
+                    <p className="riyasat-client-stories__subtitle">{subTitle}</p>
+                  ) : null}
+                  {title ? (
+                    <h3 className="riyasat-client-stories__title">{title}</h3>
+                  ) : null}
+                </div>
+              )}
 
-              <div
-                className="riyasat-client-stories__track"
-                style={{ display: 'flex', gap: '16px', overflowX: 'auto' }}
-              >
+              <div className="riyasat-client-stories__track">
                 <InnerBlocks
                   allowedBlocks={[CLIENT_STORIES_ITEM_BLOCK]}
                   template={[
@@ -408,17 +368,9 @@ function registerClientStoriesParent() {
                 />
               </div>
 
-              {showPagination && slideCount > 1 ? (
-                <div
-                  className="riyasat-client-stories__pagination"
-                  style={{
-                    display: 'flex',
-                    gap: '8px',
-                    justifyContent: 'center',
-                    marginTop: '12px',
-                  }}
-                >
-                  {Array.from({ length: slideCount }).map((_, index) => (
+              {showPagination && storyCount > 1 ? (
+                <div className="riyasat-client-stories__pagination">
+                  {Array.from({ length: storyCount }).map((_, index) => (
                     <button
                       key={index}
                       type="button"
@@ -427,16 +379,6 @@ function registerClientStoriesParent() {
                       }`}
                       aria-label={`Go to story ${index + 1}`}
                       onClick={() => setActiveIndex(index)}
-                      style={{
-                        width: index === activeIndex ? '24px' : '10px',
-                        height: '10px',
-                        borderRadius: '999px',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                        background:
-                          index === activeIndex ? '#1a1a2e' : 'rgba(0,0,0,0.25)',
-                      }}
                     />
                   ))}
                 </div>
@@ -471,10 +413,7 @@ function registerClientStoriesParent() {
             <InnerBlocks.Content />
           </div>
           {showPagination ? (
-            <div
-              className="riyasat-client-stories__pagination"
-              aria-hidden="true"
-            />
+            <div className="riyasat-client-stories__pagination" aria-hidden="true" />
           ) : null}
         </div>
       );
