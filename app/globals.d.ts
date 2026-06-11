@@ -1,3 +1,16 @@
+// App Bridge v4 — exposed on window in embedded admin. Loose by design.
+interface Window {
+  shopify?: {
+    resourcePicker?: (options: {
+      type: "product" | "collection" | "variant";
+      multiple?: boolean;
+    }) => Promise<
+      Array<{ id: string; handle?: string; title?: string }> | undefined
+    >;
+    [key: string]: any;
+  };
+}
+
 declare module "*.css";
 declare module "*.css?url" {
   const href: string;

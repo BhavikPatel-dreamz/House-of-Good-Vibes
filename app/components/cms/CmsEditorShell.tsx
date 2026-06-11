@@ -4,6 +4,7 @@ import { ClientBlockEditor } from "gutenberg-block-kit/editor-client";
 // modules (which pull the @wordpress/emotion runtime) are loaded client-only in
 // the effect below.
 import { RIYASAT_BLOCKS } from "../../blocks/constants";
+import { cmsEditorActions } from "./actionsConfig";
 
 type MetaState = {
   slug: string;
@@ -665,7 +666,18 @@ export function CmsEditorShell({
         initialTitle={initialTitle}
         initialContent={initialContent}
         onSave={onSave}
+        headerButtons={{
+          deviceSwitcher: false,  // device preview toggle
+          sidebar: true,         // sidebar toggle
+          preview: false,         // preview/edit toggle
+          clear: true,          // hide Clear (trash) button
+          save: true,            // Save button
+          viewSite: false,       // hide View Site button
+          options: true,         // options (⋮) menu
+        }}
         onLoad={onLoad}
+        // Button-action registry shared by every block's <ActionBuilder>.
+        actions={cmsEditorActions}
         unregisterBlocks={["core/breadcrumbs","core/table","core/code","core/gallery","core/shortcode","core/search","core/tag-cloud","core/html"]}
         // Drop the kit's myapp/* demo blocks entirely.
         disableBundledBlocks

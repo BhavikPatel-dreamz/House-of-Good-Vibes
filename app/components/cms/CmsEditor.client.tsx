@@ -141,6 +141,15 @@ export function CmsEditor({
         initialTitle={initialTitle}
         initialContent={initialContent}
         onSave={onSave}
+        headerButtons={{
+          deviceSwitcher: true,  // device preview toggle
+          sidebar: true,         // sidebar toggle
+          preview: true,         // preview/edit toggle
+          clear: false,          // hide Clear (trash) button
+          save: true,            // Save button
+          viewSite: false,       // hide View Site button
+          options: true,         // options (⋮) menu
+        }}
         onLoad={onLoad}
         media={{
           perPage: 20,

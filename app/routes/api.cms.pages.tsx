@@ -1,7 +1,15 @@
-import type { ActionFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 
-import { createPage } from "../lib/cms.server";
+import { createPage, listSelectablePages } from "../lib/cms.server";
 import { authenticate } from "../shopify.server";
+
+// GET /api/cms/pages — list pages for the action builder's page-select field
+// (OPEN_INAPP_PAGE). Returns `{ id, title }[]` as the kit's `fetchPages` expects.
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const { session } = await authenticate.admin(request);
+  const pages = await listSelectablePages(session.shop, "page");
+  return Response.json(pages.map((p) => ({ id: p.id, title: p.title })));
+};
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
