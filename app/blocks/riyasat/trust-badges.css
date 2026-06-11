@@ -9,26 +9,29 @@
   border-radius: 8px;
 }
 
-/* Editor + published: 3-column badge grid (matches final preview) */
-.riyasat-trust-badges-editor .riyasat-trust-badges .block-editor-block-list__layout,
-.riyasat-trust-badges:not(.riyasat-trust-badges-editor) {
+/* Editor + published: 3 equal columns (~33.33% each) with gutter space */
+.riyasat-trust-badges-editor .riyasat-trust-badges .block-editor-block-list__layout {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 20px;
+  row-gap: 16px;
   width: 100%;
-  justify-items: center;
   align-items: start;
+}
+
+.riyasat-trust-badges-editor .riyasat-trust-badges .block-editor-block-list__layout > * {
+  width: 100%;
+  min-width: 0;
 }
 
 .riyasat-trust-badges-item-editor {
   width: 100%;
-  max-width: 110px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  margin: 0 auto;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .riyasat-trust-badges-item-editor__icon-btn {
@@ -86,8 +89,6 @@
 /* Add-badge control sits in the next grid cell */
 .riyasat-trust-badges-editor .block-list-appender {
   width: 100%;
-  max-width: 110px;
-  margin: 0 auto;
 }
 
 .riyasat-trust-badges-editor .block-editor-button-block-appender {
@@ -115,8 +116,7 @@
   gap: 8px;
   text-align: center;
   width: 100%;
-  max-width: 110px;
-  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .riyasat-trust-badges__icon {
