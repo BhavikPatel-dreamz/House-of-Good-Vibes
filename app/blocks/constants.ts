@@ -27,6 +27,9 @@ export const INSTA_FEED_ITEM_BLOCK = "core/insta-feed-item";
 export const CLIENT_STORIES_BLOCK = "core/client-stories";
 export const CLIENT_STORIES_ITEM_BLOCK = "core/client-stories-item";
 
+export const SHOP_THE_LOOK_BLOCK = "core/shop-the-look";
+export const SHOP_THE_LOOK_ITEM_BLOCK = "core/shop-the-look-item";
+
 /**
  * Blocks kept registered + insertable. Everything else (all WP core blocks) is
  * unregistered in index.ts; the kit's myapp/* demos are dropped via
@@ -49,4 +52,6 @@ export const RIYASAT_BLOCKS = [
   INSTA_FEED_ITEM_BLOCK,
   CLIENT_STORIES_BLOCK,
   CLIENT_STORIES_ITEM_BLOCK,
+  SHOP_THE_LOOK_BLOCK,
+  SHOP_THE_LOOK_ITEM_BLOCK,
 ];
