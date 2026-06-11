@@ -9,9 +9,69 @@ import {
   InspectorControls,
   PanelColorSettings,
 } from 'gutenberg-block-kit/wp/block-editor';
-import { PanelBody, TextControl, Button } from 'gutenberg-block-kit/wp/components';
+import { useState, useEffect } from 'gutenberg-block-kit/wp/element';
+import { PanelBody, TextControl, ToggleControl, Button } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import { PRODUCT_SCROLLER_BLOCK, RIYASAT_CATEGORY } from '../constants';
+
+const PLACEHOLDER_COUNT = 4;
+const COLLECTION_PRODUCT_LIMIT = 12;
+
+function ProductScrollerPlaceholderCards({ count = PLACEHOLDER_COUNT }) {
+  return Array.from({ length: count }).map((_, index) => (
+    <div key={index} className="riyasat-product-scroller__card">
+      <div className="riyasat-product-scroller__card-image" />
+      <div className="riyasat-product-scroller__card-body">
+        <div className="riyasat-product-scroller__card-line" />
+        <div className="riyasat-product-scroller__card-line riyasat-product-scroller__card-line--short" />
+      </div>
+    </div>
+  ));
+}
+
+function ProductScrollerProductCards({ products }) {
+  return products.map((product) => (
+    <div key={product.id} className="riyasat-product-scroller__card">
+      {product.imageUrl ? (
+        <img
+          className="riyasat-product-scroller__card-image riyasat-product-scroller__card-image--photo"
+          src={product.imageUrl}
+          alt={product.imageAlt || product.title}
+          loading="lazy"
+        />
+      ) : (
+        <div className="riyasat-product-scroller__card-image" />
+      )}
+      <div className="riyasat-product-scroller__card-body">
+        <p className="riyasat-product-scroller__card-title">{product.title}</p>
+        {product.price ? (
+          <p className="riyasat-product-scroller__card-price">{product.price}</p>
+        ) : (
+          <div className="riyasat-product-scroller__card-line riyasat-product-scroller__card-line--short" />
+        )}
+      </div>
+    </div>
+  ));
+}
+
+function ProductScrollerPagination({ itemCount = PLACEHOLDER_COUNT }) {
+  const dotCount = Math.min(5, Math.max(3, Math.ceil(itemCount / 2)));
+
+  return (
+    <div className="riyasat-product-scroller__pagination" aria-hidden="true">
+      {Array.from({ length: dotCount }).map((_, index) => (
+        <span
+          key={index}
+          className={`riyasat-product-scroller__pagination-dot${
+            index === 0
+              ? ' riyasat-product-scroller__pagination-dot--active'
+              : ' riyasat-product-scroller__pagination-dot--inactive'
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
 
 const DEFAULT_BACKGROUND = '#f5f5f5';
 
@@ -66,20 +126,70 @@ export function registerProductScroller() {
       buttonText: { type: 'string', default: '' },
       collection: { type: 'object', default: {} },
       action: { type: 'object', default: {} },
+      showPagination: { type: 'boolean', default: true },
     },
 
     edit: ({ attributes, setAttributes }) => {
-      const { title, subTitle, backgroundColor, buttonText, collection, action } =
-        attributes;
+      const {
+        title,
+        subTitle,
+        backgroundColor,
+        buttonText,
+        collection,
+        action,
+        showPagination,
+      } = attributes;
       const blockProps = useBlockProps({
         className: 'riyasat-product-scroller-editor',
       });
       const hasCollection = collection && collection.collectionId;
+      const [products, setProducts] = useState([]);
+      const [productsLoading, setProductsLoading] = useState(false);
+
+      useEffect(() => {
+        if (!hasCollection) {
+          setProducts([]);
+          setProductsLoading(false);
+          return undefined;
+        }
+
+        let cancelled = false;
+        setProductsLoading(true);
+
+        const params = new URLSearchParams({
+          collectionId: String(collection.collectionId),
+          limit: String(COLLECTION_PRODUCT_LIMIT),
+        });
+
+        fetch(`/api/cms/collection-products?${params.toString()}`)
+          .then((response) => response.json())
+          .then((data) => {
+            if (cancelled) return;
+            if (data.error) {
+              setProducts([]);
+              return;
+            }
+            setProducts(Array.isArray(data.products) ? data.products : []);
+          })
+          .catch(() => {
+            if (!cancelled) setProducts([]);
+          })
+          .finally(() => {
+            if (!cancelled) setProductsLoading(false);
+          });
+
+        return () => {
+          cancelled = true;
+        };
+      }, [hasCollection, collection?.collectionId]);
 
       async function onPickCollection() {
         const picked = await pickCollection();
         if (picked) setAttributes({ collection: picked });
       }
+
+      const showRealProducts = hasCollection && !productsLoading && products.length > 0;
+      const visibleItemCount = showRealProducts ? products.length : PLACEHOLDER_COUNT;
 
       return (
         <>
@@ -130,6 +240,14 @@ export function registerProductScroller() {
               ) : null}
             </PanelBody>
 
+            <PanelBody title="Settings" initialOpen={true}>
+              <ToggleControl
+                label="Show pagination"
+                checked={showPagination}
+                onChange={(value) => setAttributes({ showPagination: value })}
+              />
+            </PanelBody>
+
             <PanelBody title="Button" initialOpen={false}>
               <TextControl
                 label="Button text"
@@ -159,115 +277,32 @@ export function registerProductScroller() {
           <div {...blockProps}>
             <div
               className="riyasat-product-scroller"
-              style={{
-                background: backgroundColor,
-                padding: '24px',
-                borderRadius: '8px',
-              }}
+              style={{ background: backgroundColor }}
             >
               <div className="riyasat-product-scroller__heading">
                 {subTitle ? (
-                  <p
-                    className="riyasat-product-scroller__subtitle"
-                    style={{ margin: '0 0 4px', color: '#888', fontSize: '13px' }}
-                  >
-                    {subTitle}
-                  </p>
+                  <p className="riyasat-product-scroller__subtitle">{subTitle}</p>
                 ) : null}
                 {title ? (
-                  <h3
-                    className="riyasat-product-scroller__title"
-                    style={{ margin: 0, fontSize: '22px', fontWeight: 700 }}
-                  >
-                    {title}
-                  </h3>
+                  <h3 className="riyasat-product-scroller__title">{title}</h3>
                 ) : null}
               </div>
 
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '16px',
-                  overflowX: 'auto',
-                  margin: '16px 0',
-                }}
-              >
-                {/* Editor placeholder — real products render on the storefront/app. */}
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      width: '140px',
-                      flexShrink: 0,
-                      background: '#fff',
-                      borderRadius: '8px',
-                      overflow: 'hidden',
-                      border: '1px solid rgba(0,0,0,0.08)',
-                    }}
-                  >
-                    <div style={{ height: '160px', background: '#e9e9ef' }} />
-                    <div style={{ padding: '8px' }}>
-                      <div
-                        style={{
-                          height: '10px',
-                          background: '#e0e0e6',
-                          borderRadius: '4px',
-                          marginBottom: '6px',
-                        }}
-                      />
-                      <div
-                        style={{
-                          height: '10px',
-                          width: '60%',
-                          background: '#e0e0e6',
-                          borderRadius: '4px',
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
+              <div className="riyasat-product-scroller__track">
+                {showRealProducts ? (
+                  <ProductScrollerProductCards products={products} />
+                ) : (
+                  <ProductScrollerPlaceholderCards />
+                )}
               </div>
 
-              {hasCollection ? (
-                <p
-                  style={{
-                    margin: '0 0 12px',
-                    fontSize: '12px',
-                    color: '#666',
-                    textAlign: 'center',
-                  }}
-                >
-                  Products from <strong>{collection.title}</strong>
-                </p>
-              ) : (
-                <p
-                  style={{
-                    margin: '0 0 12px',
-                    fontSize: '12px',
-                    color: '#b00',
-                    textAlign: 'center',
-                  }}
-                >
-                  Select a collection in the sidebar →
-                </p>
-              )}
+              {showPagination ? (
+                <ProductScrollerPagination itemCount={visibleItemCount} />
+              ) : null}
 
               {buttonText ? (
-                <div style={{ textAlign: 'center' }}>
-                  <span
-                    className="riyasat-product-scroller__button"
-                    style={{
-                      display: 'inline-block',
-                      padding: '12px 28px',
-                      border: '1px solid #1a1a2e',
-                      borderRadius: '6px',
-                      fontWeight: 600,
-                      fontSize: '13px',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    {buttonText}
-                  </span>
+                <div className="riyasat-product-scroller__button-wrap">
+                  <span className="riyasat-product-scroller__button">{buttonText}</span>
                 </div>
               ) : null}
             </div>
@@ -277,13 +312,21 @@ export function registerProductScroller() {
     },
 
     save: ({ attributes }) => {
-      const { title, subTitle, backgroundColor, buttonText, collection, action } =
-        attributes;
+      const {
+        title,
+        subTitle,
+        backgroundColor,
+        buttonText,
+        collection,
+        action,
+        showPagination,
+      } = attributes;
       const blockProps = useBlockProps.save({
         className: 'riyasat-product-scroller',
         'data-background-color': backgroundColor,
         'data-collection': JSON.stringify(collection ?? {}),
         'data-action': JSON.stringify(action ?? {}),
+        'data-show-pagination': showPagination ? 'true' : 'false',
         style: { background: backgroundColor },
       });
       return (
@@ -296,8 +339,13 @@ export function registerProductScroller() {
               <h3 className="riyasat-product-scroller__title">{title}</h3>
             ) : null}
           </div>
+          {showPagination ? (
+            <div className="riyasat-product-scroller__pagination" aria-hidden="true" />
+          ) : null}
           {buttonText ? (
-            <span className="riyasat-product-scroller__button">{buttonText}</span>
+            <div className="riyasat-product-scroller__button-wrap">
+              <span className="riyasat-product-scroller__button">{buttonText}</span>
+            </div>
           ) : null}
         </div>
       );
