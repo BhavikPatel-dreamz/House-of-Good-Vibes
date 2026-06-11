@@ -23,7 +23,7 @@ import {
   RIYASAT_CATEGORY,
 } from '../constants';
 
-const DEFAULT_BACKGROUND = '#f5f5f5';
+const DEFAULT_BACKGROUND = '#f5ead6';
 
 function InstaFeedIcon() {
   return (
@@ -40,6 +40,14 @@ function InstaFeedIcon() {
         d="M12 2c2.7 0 3 0 4.1.1 1 .1 1.7.2 2.3.5.6.2 1.1.5 1.6 1s.8 1 1 1.6c.3.6.4 1.3.5 2.3.1 1.1.1 1.4.1 4.1s0 3-.1 4.1c-.1 1-.2 1.7-.5 2.3-.2.6-.5 1.1-1 1.6s-1 .8-1.6 1c-.6.3-1.3.4-2.3.5-1.1.1-1.4.1-4.1.1s-3 0-4.1-.1c-1-.1-1.7-.2-2.3-.5-.6-.2-1.1-.5-1.6-1s-.8-1-1-1.6c-.3-.6-.4-1.3-.5-2.3C2 15 2 14.7 2 12s0-3 .1-4.1c.1-1 .2-1.7.5-2.3.2-.6.5-1.1 1-1.6s1-.8 1.6-1c.6-.3 1.3-.4 2.3-.5C8.6 2 9 2 12 2zm0 5a5 5 0 100 10 5 5 0 000-10zm0 8.2a3.2 3.2 0 110-6.4 3.2 3.2 0 010 6.4zM17.4 5.4a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z"
       />
     </svg>
+  );
+}
+
+function InstaOverlayIcon() {
+  return (
+    <span className="riyasat-insta-feed-item-editor__icon" aria-hidden="true">
+      <InstaFeedIcon />
+    </span>
   );
 }
 
@@ -131,28 +139,27 @@ function registerInstaFeedItem() {
             </PanelBody>
           </InspectorControls>
 
-          <div
-            {...blockProps}
-            style={{
-              width: '150px',
-              flexShrink: 0,
-              background: '#fff',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              border: '1px solid rgba(0,0,0,0.08)',
-            }}
-          >
+          <div {...blockProps}>
             {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt=""
-                style={{
-                  width: '100%',
-                  height: '150px',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-              />
+              <MediaUploadCheck>
+                <MediaUpload
+                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  allowedTypes={['image']}
+                  render={({ open }) => (
+                    <img
+                      src={imageUrl}
+                      alt=""
+                      className="riyasat-insta-feed-item-editor__image"
+                      onClick={open}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') open();
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    />
+                  )}
+                />
+              </MediaUploadCheck>
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
@@ -161,18 +168,8 @@ function registerInstaFeedItem() {
                   render={({ open }) => (
                     <button
                       type="button"
+                      className="riyasat-insta-feed-item-editor__image-btn"
                       onClick={open}
-                      style={{
-                        width: '100%',
-                        height: '150px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: '#fff',
-                        background: '#2a2a4a',
-                        border: 'none',
-                      }}
                     >
                       Add image
                     </button>
@@ -180,6 +177,7 @@ function registerInstaFeedItem() {
                 />
               </MediaUploadCheck>
             )}
+            <InstaOverlayIcon />
           </div>
         </>
       );
@@ -203,13 +201,13 @@ function registerInstaFeedItem() {
 }
 
 // ---------------------------------------------------------------------------
-// Parent: core/insta-feed — heading + row of image tiles
+// Parent: core/insta-feed — heading + 2-column image grid
 // ---------------------------------------------------------------------------
 function registerInstaFeedParent() {
   registerBlockType(INSTA_FEED_BLOCK, {
     apiVersion: 3,
     title: 'Insta Feed',
-    description: 'A titled row of Instagram-style image tiles on a colored background.',
+    description: 'A titled 2-column Instagram-style image grid on a colored background.',
     category: RIYASAT_CATEGORY,
     icon: InstaFeedIcon,
     keywords: ['insta', 'instagram', 'feed', 'social', 'gallery'],
@@ -265,48 +263,30 @@ function registerInstaFeedParent() {
           <div {...blockProps}>
             <div
               className="riyasat-insta-feed"
-              style={{
-                background: backgroundColor,
-                padding: '24px',
-                borderRadius: '8px',
-              }}
+              style={{ background: backgroundColor }}
             >
-              <div
-                className="riyasat-insta-feed__heading"
-                style={{ textAlign: 'center' }}
-              >
-                {title ? (
-                  <h3
-                    className="riyasat-insta-feed__title"
-                    style={{ margin: '0 0 4px', fontSize: '22px', fontWeight: 700 }}
-                  >
-                    {title}
-                  </h3>
-                ) : null}
-                {subTitle ? (
-                  <p
-                    className="riyasat-insta-feed__subtitle"
-                    style={{ margin: '0 0 16px', color: '#888', fontSize: '13px' }}
-                  >
-                    {subTitle}
-                  </p>
-                ) : null}
-              </div>
+              {(subTitle || title) && (
+                <div className="riyasat-insta-feed__heading">
+                  {subTitle ? (
+                    <p className="riyasat-insta-feed__subtitle">{subTitle}</p>
+                  ) : null}
+                  {title ? (
+                    <h3 className="riyasat-insta-feed__title">{title}</h3>
+                  ) : null}
+                </div>
+              )}
 
-              <div
-                className="riyasat-insta-feed__track"
-                style={{ display: 'flex', gap: '12px', overflowX: 'auto' }}
-              >
+              <div className="riyasat-insta-feed__grid">
                 <InnerBlocks
                   allowedBlocks={[INSTA_FEED_ITEM_BLOCK]}
                   template={[
                     [INSTA_FEED_ITEM_BLOCK, {}],
                     [INSTA_FEED_ITEM_BLOCK, {}],
                     [INSTA_FEED_ITEM_BLOCK, {}],
+                    [INSTA_FEED_ITEM_BLOCK, {}],
                   ]}
                   templateLock={false}
                   renderAppender={InnerBlocks.ButtonBlockAppender}
-                  orientation="horizontal"
                 />
               </div>
             </div>
@@ -326,14 +306,14 @@ function registerInstaFeedParent() {
       return (
         <div {...blockProps}>
           <div className="riyasat-insta-feed__heading">
-            {title ? (
-              <h3 className="riyasat-insta-feed__title">{title}</h3>
-            ) : null}
             {subTitle ? (
               <p className="riyasat-insta-feed__subtitle">{subTitle}</p>
             ) : null}
+            {title ? (
+              <h3 className="riyasat-insta-feed__title">{title}</h3>
+            ) : null}
           </div>
-          <div className="riyasat-insta-feed__track">
+          <div className="riyasat-insta-feed__grid">
             <InnerBlocks.Content />
           </div>
         </div>

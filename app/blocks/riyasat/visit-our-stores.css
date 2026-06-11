@@ -1,7 +1,11 @@
 .riyasat-visit-our-stores-editor {
   border: 1px solid #ddd;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.riyasat-visit-our-stores-editor .riyasat-visit-our-stores {
+  overflow: visible;
 }
 
 .riyasat-visit-our-stores {
@@ -46,6 +50,8 @@
   padding-bottom: 6px;
   scrollbar-width: thin;
   scrollbar-color: var(--riyasat-visit-our-stores-accent) rgba(179, 2, 74, 0.2);
+  /* 1 full slide + half of the next visible */
+  --riyasat-visit-our-stores-slide-width: calc((100% - 20px) / 1.5);
 }
 
 .riyasat-visit-our-stores__track::-webkit-scrollbar {
@@ -80,10 +86,13 @@
   align-items: stretch;
 }
 
-.riyasat-visit-our-stores-editor .riyasat-visit-our-stores__track .block-editor-block-list__layout > * {
-  flex: 0 0 var(--riyasat-visit-our-stores-slide-width);
-  min-width: var(--riyasat-visit-our-stores-slide-width);
-  max-width: var(--riyasat-visit-our-stores-slide-width);
+.riyasat-visit-our-stores-editor .riyasat-visit-our-stores__track .block-editor-block-list__layout > *,
+.riyasat-visit-our-stores-editor .riyasat-visit-our-stores__track .block-editor-block-list__block {
+  flex: 0 0 var(--riyasat-visit-our-stores-slide-width) !important;
+  min-width: var(--riyasat-visit-our-stores-slide-width) !important;
+  max-width: var(--riyasat-visit-our-stores-slide-width) !important;
+  width: var(--riyasat-visit-our-stores-slide-width) !important;
+  margin: 0;
   box-sizing: border-box;
   scroll-snap-align: start;
 }
@@ -114,11 +123,18 @@
 
 .riyasat-visit-our-stores-item-editor {
   width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
+  border: none;
   box-sizing: border-box;
+}
+
+.riyasat-visit-our-stores-editor .riyasat-visit-our-stores-item-editor.wp-block {
+  width: 100%;
+  max-width: 100%;
 }
 
 .riyasat-visit-our-stores-item-editor__image-btn {
@@ -156,25 +172,27 @@
   width: 100%;
 }
 
-.riyasat-visit-our-stores-item-editor__field {
+.riyasat-visit-our-stores-item-editor__field,
+.riyasat-visit-our-stores-item-editor .components-text-control__input,
+.riyasat-visit-our-stores-item-editor .components-textarea-control__input {
   width: 100%;
   margin: 0;
   padding: 4px 2px;
-  border: 0;
-  border-top: 0;
-  border-left: 0;
-  border-right: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 0;
-  background: transparent;
+  border: none !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
   color: inherit;
   font-size: 14px;
   line-height: 1.35;
   text-align: center;
   box-sizing: border-box;
   resize: vertical;
-  outline: none;
-  box-shadow: none;
+  outline: none !important;
+  box-shadow: none !important;
   -webkit-appearance: none;
   appearance: none;
   font-family: inherit;
@@ -184,22 +202,17 @@
   color: rgba(0, 0, 0, 0.38);
 }
 
-.riyasat-visit-our-stores-item-editor__field:focus {
-  border-top: 0;
-  border-left: 0;
-  border-right: 0;
-  border-bottom: 1px solid #3858e9;
-  box-shadow: none;
-  outline: none;
+.riyasat-visit-our-stores-item-editor__field:focus,
+.riyasat-visit-our-stores-item-editor .components-text-control__input:focus,
+.riyasat-visit-our-stores-item-editor .components-textarea-control__input:focus {
+  border: none !important;
+  border-bottom: 1px solid #3858e9 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 .riyasat-visit-our-stores-item-editor__field--address {
   min-height: 56px;
-  border-bottom: none;
-}
-
-.riyasat-visit-our-stores-item-editor__field--address:focus {
-  border-bottom: none;
 }
 
 .riyasat-visit-our-stores__pagination {

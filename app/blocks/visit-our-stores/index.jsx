@@ -360,6 +360,7 @@ function registerVisitOurStoresParent() {
                   template={[
                     [VISIT_OUR_STORES_ITEM_BLOCK, {}],
                     [VISIT_OUR_STORES_ITEM_BLOCK, {}],
+                    [VISIT_OUR_STORES_ITEM_BLOCK, {}],
                   ]}
                   templateLock={false}
                   renderAppender={InnerBlocks.ButtonBlockAppender}

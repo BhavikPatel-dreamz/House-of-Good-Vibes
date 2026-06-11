@@ -12,6 +12,7 @@ import riyasatFreeConsultationStyles from "../blocks/riyasat/free-consultation.c
 import riyasatEditorsPickStyles from "../blocks/riyasat/editors-pick.css?url";
 import riyasatClientStoriesStyles from "../blocks/riyasat/client-stories.css?url";
 import riyasatVisitOurStoresStyles from "../blocks/riyasat/visit-our-stores.css?url";
+import riyasatInstaFeedStyles from "../blocks/riyasat/insta-feed.css?url";
 
 import { getPageBySlug } from "../lib/cms.server";
 
@@ -26,6 +27,7 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: riyasatEditorsPickStyles },
   { rel: "stylesheet", href: riyasatClientStoriesStyles },
   { rel: "stylesheet", href: riyasatVisitOurStoresStyles },
+  { rel: "stylesheet", href: riyasatInstaFeedStyles },
 ];
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
