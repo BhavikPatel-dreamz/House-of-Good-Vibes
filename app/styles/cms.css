@@ -1,12 +1,28 @@
 .cms-editor-shell {
   min-height: calc(100vh - 4rem);
 }
-
 .cms-public-page {
   margin: 0 auto;
   max-width: 960px;
 }
-
+.builder-wrapper .editor-layout {
+  display: flex !important;
+  flex-wrap: wrap;
+}
+.builder-wrapper .editor-split-layout,
+.builder-wrapper .editor-layout > .gbk-inserter-panel {
+  max-height: 100% !important;
+}
+.builder-wrapper .editor-layout.left-open > .gbk-inserter-panel {
+  width: 350px;
+}
+.builder-wrapper .editor-layout > .editor-main {
+    width: calc(100% - 350px - 350px);
+    background-color: #e8eaef;
+}
+.builder-wrapper .editor-layout > .editor-split-layout {
+    width: 350px;
+}
 /* ---------------------------------------------------------------------------
  * Mobile phone preview for the CMS block editor.
  * The kit renders the center column as `.editor-canvas` (a flex column that
@@ -18,17 +34,23 @@
  * ------------------------------------------------------------------------- */
 
 /* Grey backdrop around the phone, and center the frame horizontally. */
+body {
+    height: 100vh;
+    overflow: hidden;
+}
 .cms-editor-shell .builder-wrapper .editor-canvas-wrapper {
   background: #e9ebf0;
   align-items: center;
   padding: 24px 0 40px;
+  overflow: hidden !important;
 }
 
 /* The phone "screen" — fixed mobile width with a rounded device frame. */
 .cms-editor-shell .builder-wrapper .editor-canvas {
   width: 390px;
   max-width: 100%;
-  min-height: 760px;
+  min-height: auto !important;
+  height: 83vh;
   flex: none;
   margin: 0 auto;
   padding: 0;
@@ -40,7 +62,9 @@
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
   position: relative;
 }
-
+.builder-wrapper .editor-canvas-wrapper .block-editor-block-list__layout {
+  overflow-y: auto !important;
+}
 /* Mobile top app bar: hamburger + title + search / wishlist / cart icons. */
 .cms-editor-shell  .editor-canvas::before {
   content: "";
