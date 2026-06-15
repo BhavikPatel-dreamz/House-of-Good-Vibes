@@ -28,6 +28,7 @@ import {
 } from '../constants';
 
 const DEFAULT_BACKGROUND = '#f5f5f5';
+const DEFAULT_BUTTON_LABEL = 'Get Directions';
 
 function VisitOurStoresIcon() {
   return (
@@ -158,13 +159,15 @@ function registerVisitOurStoresItem() {
                 rows={3}
                 onChange={(event) => setAttributes({ address: event.target.value })}
               />
-              <input
-                type="url"
-                className="riyasat-visit-our-stores-item-editor__field"
-                value={mapLink}
-                placeholder="Google Maps link…"
-                onChange={(event) => setAttributes({ mapLink: event.target.value })}
-              />
+              {mapLink ? (
+                <a
+                  className="riyasat-visit-our-stores__map"
+                  href={mapLink}
+                  onClick={(event) => event.preventDefault()}
+                >
+                  {DEFAULT_BUTTON_LABEL}
+                </a>
+              ) : null}
             </div>
           </div>
         </>
@@ -176,6 +179,7 @@ function registerVisitOurStoresItem() {
       const blockProps = useBlockProps.save({
         className: 'riyasat-visit-our-stores__item',
         'data-map-link': mapLink || '',
+        ...(mapLink ? { 'data-button-label': DEFAULT_BUTTON_LABEL } : {}),
       });
       return (
         <div {...blockProps}>
@@ -199,7 +203,7 @@ function registerVisitOurStoresItem() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              View on map
+              {DEFAULT_BUTTON_LABEL}
             </a>
           ) : null}
         </div>

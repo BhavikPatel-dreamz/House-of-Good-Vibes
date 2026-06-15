@@ -1,15 +1,12 @@
 .riyasat-editors-pick-editor {
-  border: 1px solid #ddd;
-  border-radius: 8px;
   overflow: hidden;
 }
 
 .riyasat-editors-pick {
-  --riyasat-editors-pick-slide-width: calc((100% - 20px) / 1.5);
+  --riyasat-editors-pick-slide-width: 100%;
   --riyasat-editors-pick-image-height: 300px;
   --riyasat-editors-pick-accent: var(--riyasat-accent);
-  padding: 20px 16px;
-  border-radius: 8px;
+  padding: 40px 15px;
 }
 
 .riyasat-editors-pick__heading {
@@ -47,16 +44,15 @@
 
 .riyasat-editors-pick-editor .riyasat-editors-pick__track .block-editor-inner-blocks {
   min-width: 0;
+  width: 100%;
 }
 
 .riyasat-editors-pick-editor .riyasat-editors-pick__track .block-editor-block-list__layout {
   display: flex !important;
-  flex-direction: row;
-  flex-wrap: nowrap;
+  flex-direction: column;
   gap: 20px;
   width: max-content;
   min-width: 100%;
-  align-items: stretch;
 }
 
 .riyasat-editors-pick-editor .riyasat-editors-pick__track .block-editor-block-list__layout > *,

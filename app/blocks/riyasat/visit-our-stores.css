@@ -8,7 +8,7 @@
 
 .riyasat-visit-our-stores {
   --riyasat-visit-our-stores-slide-width: calc((100% - 20px) / 1.5);
-  --riyasat-visit-our-stores-image-height: 300px;
+  --riyasat-visit-our-stores-image-height: 200px;
   --riyasat-visit-our-stores-accent: var(--riyasat-accent);
   padding: 40px 15px;
 }
@@ -153,27 +153,20 @@
 .riyasat-visit-our-stores-item-editor .components-textarea-control__input {
   width: 100%;
   margin: 0;
-  padding: 4px 2px;
+  padding: 0;
   border: none !important;
-  border-top: none !important;
-  border-left: none !important;
-  border-right: none !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
   border-radius: 0 !important;
   background: transparent !important;
   color: inherit;
   font-size: 14px;
   line-height: 1.35;
-  text-align: center;
   box-sizing: border-box;
-  resize: vertical;
   outline: none !important;
   box-shadow: none !important;
   -webkit-appearance: none;
   appearance: none;
   font-family: inherit;
 }
-
 .riyasat-visit-our-stores-item-editor__field::placeholder {
   color: rgba(0, 0, 0, 0.38);
 }
@@ -186,9 +179,18 @@
   box-shadow: none !important;
   outline: none !important;
 }
-
 .riyasat-visit-our-stores-item-editor__field--address {
-  min-height: 56px;
+  min-height: 105px;
+}
+
+/* Hide duplicate directions link when serialized save markup also renders in the canvas */
+.riyasat-visit-our-stores-item-editor + .riyasat-visit-our-stores__item,
+.riyasat-visit-our-stores-item-editor ~ .riyasat-visit-our-stores__item {
+  display: none !important;
+}
+
+.riyasat-visit-our-stores-item-editor .riyasat-visit-our-stores__map ~ .riyasat-visit-our-stores__map {
+  display: none !important;
 }
 
 /* Published page */
@@ -239,4 +241,10 @@
   font-weight: 600;
   color: #1a1a2e;
   text-decoration: underline;
+}
+
+.riyasat-visit-our-stores-item-editor .riyasat-visit-our-stores__map {
+  align-self: flex-start;
+  margin-top: 4px;
+  pointer-events: none;
 }

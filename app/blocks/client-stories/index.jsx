@@ -1,7 +1,6 @@
 // @ts-nocheck
 // Client Stories — parent (core/client-stories) + child testimonial card
-// (core/client-stories-item) using InnerBlocks. Authored against the kit's
-// shared @wordpress runtime; registered from ../index.ts.
+// (core/client-stories-item) using InnerBlocks.
 import { registerBlockType, createBlock } from 'gutenberg-block-kit/wp/blocks';
 import {
   useBlockProps,
@@ -14,19 +13,37 @@ import {
 import {
   PanelBody,
   TextControl,
+  TextareaControl,
+  SelectControl,
   ToggleControl,
   Button,
 } from 'gutenberg-block-kit/wp/components';
 import { useState } from 'gutenberg-block-kit/wp/element';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
-import { contentTabStyle, ImagePicker, useChildBlocks, useSliderPagination, SliderPaginationDots } from '../inspector-shared';
+import {
+  contentTabStyle,
+  ImagePicker,
+  useChildBlocks,
+  useSliderPagination,
+  SliderPaginationDots,
+} from '../inspector-shared';
 import {
   CLIENT_STORIES_BLOCK,
   CLIENT_STORIES_ITEM_BLOCK,
   RIYASAT_CATEGORY,
 } from '../constants';
 
-const DEFAULT_BACKGROUND = '#f5f5f5';
+const DEFAULT_BACKGROUND = '#f5f2ee';
+const BRAND_MAROON = '#982054';
+const DEFAULT_BUTTON_TEXT = 'VIEW PRODUCT';
+
+const RATING_OPTIONS = [
+  { label: '5 stars', value: '5' },
+  { label: '4 stars', value: '4' },
+  { label: '3 stars', value: '3' },
+  { label: '2 stars', value: '2' },
+  { label: '1 star', value: '1' },
+];
 
 function ClientStoriesIcon() {
   return (
@@ -47,25 +64,158 @@ function ClientStoriesIcon() {
 }
 
 function renderStars(rating) {
-  const count = Math.max(0, Math.min(5, parseInt(rating, 10) || 0));
-  return '★'.repeat(count);
+  const count = Math.max(0, Math.min(5, parseInt(rating, 10) || 5));
+  return `${'★'.repeat(count)}${'☆'.repeat(5 - count)}`;
+}
+
+function ClientStoryFields({ attributes, onChange }) {
+  const { review, rating, imageUrl, reviewerName, city, buttonText, action } = attributes;
+
+  return (
+    <>
+      <ImagePicker
+        imageUrl={imageUrl}
+        onSelect={(url) => onChange({ imageUrl: url })}
+        onClear={() => onChange({ imageUrl: '' })}
+      />
+      <TextareaControl
+        label="Review"
+        value={review}
+        rows={4}
+        onChange={(value) => onChange({ review: value })}
+      />
+      <SelectControl
+        label="Rating"
+        value={rating || '5'}
+        options={RATING_OPTIONS}
+        onChange={(value) => onChange({ rating: value })}
+      />
+      <TextControl
+        label="Reviewer name"
+        value={reviewerName}
+        onChange={(value) => onChange({ reviewerName: value })}
+      />
+      <TextControl
+        label="City"
+        value={city}
+        onChange={(value) => onChange({ city: value })}
+      />
+      <TextControl
+        label="Button text"
+        value={buttonText}
+        onChange={(value) => onChange({ buttonText: value })}
+      />
+      <ActionBuilder
+        label="Button action"
+        value={action ?? {}}
+        onChange={(next) => onChange({ action: next })}
+      />
+    </>
+  );
+}
+
+function ClientStoryCardPreview({ attributes, setAttributes }) {
+  const { review, rating, imageUrl, reviewerName, city, buttonText } = attributes;
+  const stars = renderStars(rating || '5');
+  const buttonLabel = buttonText || DEFAULT_BUTTON_TEXT;
+
+  return (
+    <div className="riyasat-client-stories-item-editor__card">
+      <div className="riyasat-client-stories-item-editor__media">
+        {imageUrl ? (
+          <MediaUploadCheck>
+            <MediaUpload
+              onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+              allowedTypes={['image']}
+              render={({ open }) => (
+                <img
+                  src={imageUrl}
+                  alt=""
+                  className="riyasat-client-stories-item-editor__image"
+                  onClick={open}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') open();
+                  }}
+                  role="button"
+                  tabIndex={0}
+                />
+              )}
+            />
+          </MediaUploadCheck>
+        ) : (
+          <MediaUploadCheck>
+            <MediaUpload
+              onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+              allowedTypes={['image']}
+              render={({ open }) => (
+                <button
+                  type="button"
+                  className="riyasat-client-stories-item-editor__image-btn"
+                  onClick={open}
+                >
+                  Add image
+                </button>
+              )}
+            />
+          </MediaUploadCheck>
+        )}
+      </div>
+
+      <div className="riyasat-client-stories-item-editor__body">
+        <textarea
+          className="riyasat-client-stories-item-editor__field riyasat-client-stories-item-editor__field--review"
+          value={review}
+          placeholder="Review…"
+          rows={4}
+          onChange={(event) => setAttributes({ review: event.target.value })}
+        />
+
+        <div className="riyasat-client-stories-item-editor__footer">
+          <div className="riyasat-client-stories-item-editor__meta">
+            <input
+              type="text"
+              className="riyasat-client-stories-item-editor__field riyasat-client-stories-item-editor__field--name"
+              value={reviewerName}
+              placeholder="Reviewer name…"
+              onChange={(event) => setAttributes({ reviewerName: event.target.value })}
+            />
+            <input
+              type="text"
+              className="riyasat-client-stories-item-editor__field riyasat-client-stories-item-editor__field--city"
+              value={city}
+              placeholder="City…"
+              onChange={(event) => setAttributes({ city: event.target.value })}
+            />
+          </div>
+          <div
+            className="riyasat-client-stories-item-editor__stars"
+            aria-label={`${rating || '5'} out of 5 stars`}
+          >
+            {stars}
+          </div>
+        </div>
+
+        <span className="riyasat-client-stories-item-editor__button">{buttonLabel}</span>
+      </div>
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
-// Child: core/client-stories-item — one testimonial card
+// Child: core/client-stories-item
 // ---------------------------------------------------------------------------
 function registerClientStoriesItem() {
   registerBlockType(CLIENT_STORIES_ITEM_BLOCK, {
     apiVersion: 3,
     title: 'Client Story',
-    description: 'A single testimonial: review, rating, image, reviewer and CTA.',
+    description: 'A testimonial card with image, review, rating and CTA.',
     category: RIYASAT_CATEGORY,
     parent: [CLIENT_STORIES_BLOCK],
     icon: 'format-quote',
     supports: { html: false, reusable: false },
     attributes: {
       review: { type: 'string', default: '' },
-      rating: { type: 'string', default: '' },
+      rating: { type: 'string', default: '5' },
       imageUrl: { type: 'string', default: '' },
       reviewerName: { type: 'string', default: '' },
       city: { type: 'string', default: '' },
@@ -74,8 +224,6 @@ function registerClientStoriesItem() {
     },
 
     edit: ({ attributes, setAttributes }) => {
-      const { review, rating, imageUrl, reviewerName, city, buttonText, action } =
-        attributes;
       const blockProps = useBlockProps({
         className: 'riyasat-client-stories-item-editor',
       });
@@ -85,124 +233,63 @@ function registerClientStoriesItem() {
           <InspectorControls group="content">
             <div style={contentTabStyle}>
               <PanelBody title="Story" initialOpen={true}>
-                <ImagePicker
-                  imageUrl={imageUrl}
-                  onSelect={(url) => setAttributes({ imageUrl: url })}
-                  onClear={() => setAttributes({ imageUrl: '' })}
-                />
-                <TextControl
-                  label="Review"
-                  value={review}
-                  onChange={(value) => setAttributes({ review: value })}
-                />
-                <TextControl
-                  label="Rating"
-                  value={rating}
-                  onChange={(value) => setAttributes({ rating: value })}
-                />
-                <TextControl
-                  label="Reviewer name"
-                  value={reviewerName}
-                  onChange={(value) => setAttributes({ reviewerName: value })}
-                />
-                <TextControl
-                  label="City"
-                  value={city}
-                  onChange={(value) => setAttributes({ city: value })}
-                />
-                <TextControl
-                  label="Button text"
-                  value={buttonText}
-                  onChange={(value) => setAttributes({ buttonText: value })}
-                />
-                <ActionBuilder
-                  label="Button action"
-                  value={action}
-                  onChange={(next) => setAttributes({ action: next })}
+                <ClientStoryFields
+                  attributes={attributes}
+                  onChange={(next) => setAttributes(next)}
                 />
               </PanelBody>
             </div>
           </InspectorControls>
 
           <div {...blockProps}>
-            {rating ? (
-              <div className="riyasat-client-stories-item-editor__rating">
-                {renderStars(rating)}
-                <span className="riyasat-client-stories-item-editor__rating-value">
-                  {rating}
-                </span>
-              </div>
-            ) : null}
-            <textarea
-              className="riyasat-client-stories-item-editor__field riyasat-client-stories-item-editor__field--review"
-              value={review}
-              placeholder="Review…"
-              rows={3}
-              onChange={(event) => setAttributes({ review: event.target.value })}
-            />
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt=""
-                className="riyasat-client-stories-item-editor__image"
-              />
-            ) : null}
-            <input
-              type="text"
-              className="riyasat-client-stories-item-editor__field"
-              value={reviewerName}
-              placeholder="Reviewer name…"
-              onChange={(event) => setAttributes({ reviewerName: event.target.value })}
-            />
-            <input
-              type="text"
-              className="riyasat-client-stories-item-editor__field"
-              value={city}
-              placeholder="City…"
-              onChange={(event) => setAttributes({ city: event.target.value })}
-            />
-            {buttonText ? (
-              <span className="riyasat-client-stories-item-editor__button">
-                {buttonText}
-              </span>
-            ) : null}
+            <ClientStoryCardPreview attributes={attributes} setAttributes={setAttributes} />
           </div>
         </>
       );
     },
 
     save: ({ attributes }) => {
-      const { review, rating, imageUrl, reviewerName, city, buttonText, action } =
-        attributes;
+      const { review, rating, imageUrl, reviewerName, city, buttonText, action } = attributes;
+      const stars = renderStars(rating || '5');
+      const buttonLabel = buttonText || DEFAULT_BUTTON_TEXT;
+
       const blockProps = useBlockProps.save({
         className: 'riyasat-client-stories__item',
         'data-action': JSON.stringify(action ?? {}),
-        'data-rating': rating,
+        'data-rating': rating || '5',
       });
+
       return (
         <div {...blockProps}>
-          {rating ? (
-            <span className="riyasat-client-stories__rating">{rating}</span>
-          ) : null}
-          {review ? (
-            <p className="riyasat-client-stories__review">{review}</p>
-          ) : null}
           {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt=""
-              className="riyasat-client-stories__image"
-            />
+            <div className="riyasat-client-stories__media">
+              <img
+                src={imageUrl}
+                alt=""
+                className="riyasat-client-stories__image"
+              />
+            </div>
           ) : null}
-          {reviewerName ? (
-            <span className="riyasat-client-stories__reviewer">{reviewerName}</span>
-          ) : null}
-          {city ? (
-            <span className="riyasat-client-stories__city">{city}</span>
-          ) : null}
-          {buttonText ? (
-            <span className="riyasat-client-stories__button">{buttonText}</span>
-          ) : null}
+          <div className="riyasat-client-stories__body">
+            {review ? (
+              <p className="riyasat-client-stories__review">{review}</p>
+            ) : null}
+            <div className="riyasat-client-stories__footer">
+              <div className="riyasat-client-stories__meta">
+                {reviewerName ? (
+                  <span className="riyasat-client-stories__reviewer">{reviewerName}</span>
+                ) : null}
+                {city ? <span className="riyasat-client-stories__city">{city}</span> : null}
+              </div>
+              <span
+                className="riyasat-client-stories__stars"
+                aria-label={`${rating || '5'} out of 5 stars`}
+              >
+                {stars}
+              </span>
+            </div>
+            <span className="riyasat-client-stories__button">{buttonLabel}</span>
+          </div>
         </div>
       );
     },
@@ -210,7 +297,7 @@ function registerClientStoriesItem() {
 }
 
 // ---------------------------------------------------------------------------
-// Parent: core/client-stories — heading + horizontal row of testimonial cards
+// Parent: core/client-stories
 // ---------------------------------------------------------------------------
 function registerClientStoriesParent() {
   registerBlockType(CLIENT_STORIES_BLOCK, {
@@ -230,13 +317,16 @@ function registerClientStoriesParent() {
     },
 
     edit: ({ attributes, setAttributes, clientId }) => {
-      const { title, subTitle, backgroundColor, showPagination, action } =
-        attributes;
+      const { title, subTitle, backgroundColor, showPagination, action } = attributes;
       const blockProps = useBlockProps({ className: 'riyasat-client-stories-editor' });
       const [activeIndex, setActiveIndex] = useState(0);
       const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
         useChildBlocks(clientId);
-      const { trackRef, slideCount, goToSlide } = useSliderPagination(clientId, activeIndex, setActiveIndex);
+      const { trackRef, slideCount, goToSlide } = useSliderPagination(
+        clientId,
+        activeIndex,
+        setActiveIndex,
+      );
 
       return (
         <>
@@ -255,69 +345,16 @@ function registerClientStoriesParent() {
                 />
               </PanelBody>
               {childBlocks.map((block, index) => {
-                const {
-                  review,
-                  rating,
-                  imageUrl,
-                  reviewerName,
-                  city,
-                  buttonText,
-                  action: storyAction,
-                } = block.attributes;
+                const storyTitle = block.attributes.reviewerName;
                 return (
                   <PanelBody
                     key={block.clientId}
-                    title={`Story ${index + 1}`}
+                    title={`Story ${index + 1}${storyTitle ? `: ${storyTitle}` : ''}`}
                     initialOpen={false}
                   >
-                    <ImagePicker
-                      imageUrl={imageUrl}
-                      onSelect={(url) =>
-                        updateBlockAttributes(block.clientId, { imageUrl: url })
-                      }
-                      onClear={() => updateBlockAttributes(block.clientId, { imageUrl: '' })}
-                    />
-                    <TextControl
-                      label="Review"
-                      value={review}
-                      onChange={(value) =>
-                        updateBlockAttributes(block.clientId, { review: value })
-                      }
-                    />
-                    <TextControl
-                      label="Rating"
-                      value={rating}
-                      onChange={(value) =>
-                        updateBlockAttributes(block.clientId, { rating: value })
-                      }
-                    />
-                    <TextControl
-                      label="Reviewer name"
-                      value={reviewerName}
-                      onChange={(value) =>
-                        updateBlockAttributes(block.clientId, { reviewerName: value })
-                      }
-                    />
-                    <TextControl
-                      label="City"
-                      value={city}
-                      onChange={(value) =>
-                        updateBlockAttributes(block.clientId, { city: value })
-                      }
-                    />
-                    <TextControl
-                      label="Button text"
-                      value={buttonText}
-                      onChange={(value) =>
-                        updateBlockAttributes(block.clientId, { buttonText: value })
-                      }
-                    />
-                    <ActionBuilder
-                      label="Button action"
-                      value={storyAction}
-                      onChange={(next) =>
-                        updateBlockAttributes(block.clientId, { action: next })
-                      }
+                    <ClientStoryFields
+                      attributes={block.attributes}
+                      onChange={(next) => updateBlockAttributes(block.clientId, next)}
                     />
                     {childCount > 1 ? (
                       <Button
@@ -390,9 +427,9 @@ function registerClientStoriesParent() {
                 <InnerBlocks
                   allowedBlocks={[CLIENT_STORIES_ITEM_BLOCK]}
                   template={[
-                    [CLIENT_STORIES_ITEM_BLOCK, {}],
-                    [CLIENT_STORIES_ITEM_BLOCK, {}],
-                    [CLIENT_STORIES_ITEM_BLOCK, {}],
+                    [CLIENT_STORIES_ITEM_BLOCK, { rating: '5' }],
+                    [CLIENT_STORIES_ITEM_BLOCK, { rating: '5' }],
+                    [CLIENT_STORIES_ITEM_BLOCK, { rating: '5' }],
                   ]}
                   templateLock={false}
                   renderAppender={false}
@@ -417,8 +454,7 @@ function registerClientStoriesParent() {
     },
 
     save: ({ attributes }) => {
-      const { title, subTitle, backgroundColor, showPagination, action } =
-        attributes;
+      const { title, subTitle, backgroundColor, showPagination, action } = attributes;
       const blockProps = useBlockProps.save({
         className: 'riyasat-client-stories',
         'data-background-color': backgroundColor,
@@ -432,9 +468,7 @@ function registerClientStoriesParent() {
             {subTitle ? (
               <p className="riyasat-client-stories__subtitle">{subTitle}</p>
             ) : null}
-            {title ? (
-              <h3 className="riyasat-client-stories__title">{title}</h3>
-            ) : null}
+            {title ? <h3 className="riyasat-client-stories__title">{title}</h3> : null}
           </div>
           <div className="riyasat-client-stories__track">
             <InnerBlocks.Content />
@@ -448,10 +482,6 @@ function registerClientStoriesParent() {
   });
 }
 
-/**
- * Register the client-stories parent + testimonial child. Child registers first
- * so the parent's InnerBlocks template can reference it.
- */
 export function registerClientStories() {
   registerClientStoriesItem();
   registerClientStoriesParent();

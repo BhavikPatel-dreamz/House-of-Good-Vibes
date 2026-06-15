@@ -1,12 +1,9 @@
 .riyasat-trust-badges-editor {
-  border: 1px solid #ddd;
-  border-radius: 8px;
   overflow: hidden;
 }
 
 .riyasat-trust-badges {
-  padding: 20px 16px;
-  border-radius: 8px;
+  padding: 40px 15px;
 }
 
 /* Editor + published: 3 equal columns (~33.33% each) with gutter space */
@@ -67,17 +64,13 @@
 .riyasat-trust-badges-item-editor__label {
   width: 100%;
   margin: 0;
-  padding: 4px 2px;
+  padding: 6px 0;
   border: 0;
-  border-top: 0;
-  border-left: 0;
-  border-right: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 0;
   background: transparent;
   color: inherit;
-  font-size: 14px;
-  line-height: 1.35;
+  font-size: 15px;
+  line-height: 1.5;
   text-align: center;
   outline: none;
   box-shadow: none;
@@ -87,7 +80,7 @@
 }
 
 .riyasat-trust-badges-item-editor__label::placeholder {
-  color: rgba(0, 0, 0, 0.38);
+  color: rgba(0, 0, 0, 1);
 }
 
 .riyasat-trust-badges-item-editor__label:focus {

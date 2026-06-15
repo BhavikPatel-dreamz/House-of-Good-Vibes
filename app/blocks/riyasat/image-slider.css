@@ -1,11 +1,9 @@
 .riyasat-image-slider-editor {
-  border: 1px solid #ddd;
-  border-radius: 8px;
   overflow: hidden;
 }
 
 .riyasat-image-slider {
-  padding: 20px 16px;
+  padding: 40px 15px;
 }
 
 .riyasat-image-slider__heading {
@@ -104,7 +102,6 @@
   width: 100%;
   height: var(--riyasat-image-slider-card-height);
   object-fit: cover;
-  border-radius: 10px;
   display: block;
   cursor: pointer;
 }
@@ -112,17 +109,14 @@
 .riyasat-image-slider-item-editor__label {
   width: 100%;
   margin: 0;
-  padding: 4px 2px;
+  padding: 8px 0;
   border: 0;
-  border-top: 0;
-  border-left: 0;
-  border-right: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 0;
   background: transparent;
   color: inherit;
-  font-size: 14px;
-  line-height: 1.35;
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: 500;
   text-align: center;
   outline: none;
   box-shadow: none;
@@ -132,7 +126,7 @@
 }
 
 .riyasat-image-slider-item-editor__label::placeholder {
-  color: rgba(0, 0, 0, 0.38);
+  color: rgba(0, 0, 0, 1);
 }
 
 .riyasat-image-slider-item-editor__label:focus {

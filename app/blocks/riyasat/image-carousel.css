@@ -24,8 +24,6 @@
 }
 
 .riyasat-image-carousel-editor {
-  border: 1px solid #ddd;
-  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -33,7 +31,12 @@
 .riyasat-image-carousel-editor .riyasat-image-carousel__track {
   overflow: hidden;
 }
-
+.riyasat-image-carousel__dot::after {
+  background: rgba(255, 255, 255, 0.7);
+}
+.riyasat-image-carousel__dot.is-active::after {
+  background: rgba(255, 255, 255, 1) !important;
+}
 .riyasat-image-carousel-editor .riyasat-image-carousel__track .block-editor-inner-blocks,
 .riyasat-image-carousel-editor .riyasat-image-carousel__track .block-editor-block-list__layout {
   display: block !important;

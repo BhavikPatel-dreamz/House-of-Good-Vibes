@@ -8,7 +8,7 @@
 }
 
 /* Horizontal scroll tracks — hide scrollbar, smooth snap scroll like Product Scroller */
-.riyasat-product-scroller__track,
+/* .riyasat-product-scroller__track,
 .riyasat-image-slider__track,
 .riyasat-editors-pick__track,
 .riyasat-client-stories__track,
@@ -34,7 +34,7 @@
   display: none;
   width: 0;
   height: 0;
-}
+} */
 
 /* InnerBlocks editor tracks — same flex + snap layout as Product Scroller */
 [class$="-editor"]:not(.riyasat-image-carousel-editor):not(.riyasat-hero-banner-slider-editor) [class*="__track"] .block-editor-inner-blocks {
@@ -179,4 +179,7 @@
 
 .riyasat-trust-badges-editor .block-editor-button-block-appender:hover {
   border-color: var(--riyasat-field-border);
+}
+.builder-wrapper .editor-canvas-wrapper .block-editor-block-list__layout {
+  overflow-x: hidden !important;
 }
