@@ -57,6 +57,10 @@ const LIST_FILES_QUERY = `#graphql
               height
             }
           }
+          ... on GenericFile {
+            mimeType
+            url
+          }
         }
       }
     }
@@ -168,9 +172,7 @@ export async function listImages(
   { page, perPage, search = "" }: ListImagesInput,
 ): Promise<ListImagesResult> {
   const term = search.trim();
-  const query = term
-    ? `media_type:IMAGE AND filename:*${term}*`
-    : "media_type:IMAGE";
+  const query = term ? `filename:*${term}*` : undefined;
   const targetIndex = (page - 1) * perPage;
 
   let after: string | undefined;
@@ -285,13 +287,20 @@ export async function uploadImage(
   shop: string,
   file: File,
 ): Promise<MediaItem> {
+  const mimeType = file.type || "application/octet-stream";
+  const isVideo = mimeType.startsWith("video/");
+  // In this CMS flow we persist non-image uploads as GenericFile so we always
+  // get a stable public URL from `url`.
+  const stagedResource = isVideo ? "FILE" : "IMAGE";
+  const contentType = isVideo ? "FILE" : "IMAGE";
+
   const stagedResponse = await admin.graphql(STAGED_UPLOADS_MUTATION, {
     variables: {
       input: [
         {
           filename: file.name,
-          mimeType: file.type || "image/jpeg",
-          resource: "IMAGE",
+          mimeType,
+          resource: stagedResource,
           fileSize: String(file.size),
           httpMethod: "POST",
         },
@@ -316,7 +325,7 @@ export async function uploadImage(
       files: [
         {
           alt: file.name,
-          contentType: "IMAGE",
+          contentType,
           originalSource: stagedTarget.resourceUrl,
         },
       ],
