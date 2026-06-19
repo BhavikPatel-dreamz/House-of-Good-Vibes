@@ -81,6 +81,7 @@ type ActionDef = {
     readOnly?: boolean;
     help?: string;
   }>;
+  defaultParams?: Record<string, unknown>;
   editorOnlyKeys?: string[];
   normalizeParams?: (params: Record<string, any>) => Record<string, unknown>;
   denormalizeParams?: (params: Record<string, any>) => Record<string, unknown>;
@@ -104,6 +105,21 @@ export const riyasatActions: ActionDef[] = [
       { key: "webViewUrl", label: "Webview URL", type: "url", required: true },
       { key: "title", label: "Title", type: "text", required: true },
     ],
+    previewHref: (p) => p.webViewUrl || "#",
+  },
+  {
+    name: "OPEN_POPIN",
+    label: "Open Popin",
+    fields: [
+      { key: "webViewUrl", label: "Webview URL", type: "url", required: true },
+      { key: "openInModal", label: "Open in modal", type: "boolean" },
+    ],
+    defaultParams: { openInModal: true },
+    normalizeParams: (p) => ({
+      webViewUrl: p.webViewUrl,
+      openInModal:
+        p.openInModal !== false && String(p.openInModal ?? true).toLowerCase() !== "false",
+    }),
     previewHref: (p) => p.webViewUrl || "#",
   },
 

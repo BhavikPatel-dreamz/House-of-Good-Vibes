@@ -16,6 +16,12 @@
     "moduleResolution": "Bundler",
     "target": "ES2022",
     "baseUrl": ".",
+    "paths": {
+      "gutenberg-block-kit/actions": ["app/lib/gutenberg-actions.ts"],
+      "gutenberg-block-kit/actions-kit": [
+        "node_modules/gutenberg-block-kit/dist/actions.mjs"
+      ]
+    },
     "types": [
       "@react-router/node",
       "vite/client",

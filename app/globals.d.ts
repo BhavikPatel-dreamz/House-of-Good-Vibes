@@ -42,6 +42,7 @@ declare module "gutenberg-block-kit/wp/element";
 declare module "gutenberg-block-kit/wp/data";
 declare module "gutenberg-block-kit/wp/icons";
 declare module "gutenberg-block-kit/actions";
+declare module "gutenberg-block-kit/actions-kit";
 
 declare module "gutenberg-block-kit/editor-client" {
   import type { ComponentType, ReactNode } from "react";
