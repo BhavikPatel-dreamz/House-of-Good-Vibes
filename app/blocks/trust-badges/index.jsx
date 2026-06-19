@@ -11,7 +11,7 @@ import {
   MediaUpload,
   MediaUploadCheck,
 } from 'gutenberg-block-kit/wp/block-editor';
-import { PanelBody, TextControl, Button } from 'gutenberg-block-kit/wp/components';
+import { PanelBody, TextControl, TextareaControl, Button } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import { contentTabStyle, ImagePicker, useChildBlocks } from '../inspector-shared';
 import {
@@ -40,6 +40,50 @@ function TrustBadgesIcon() {
   );
 }
 
+function TrustBadgeFields({ attributes, onChange }) {
+  const { icon, label, popupTitle, popupDescription, popupButtonText, action } = attributes;
+
+  return (
+    <>
+      <ImagePicker
+        imageUrl={icon}
+        addLabel="Add icon"
+        changeLabel="Change icon"
+        onSelect={(url) => onChange({ icon: url })}
+        onClear={() => onChange({ icon: '' })}
+      />
+      <TextControl
+        label="Label"
+        value={label}
+        onChange={(value) => onChange({ label: value })}
+      />
+      <PanelBody title="Popup" initialOpen={false}>
+        <TextControl
+          label="Popup title"
+          value={popupTitle}
+          onChange={(value) => onChange({ popupTitle: value })}
+        />
+        <TextareaControl
+          label="Popup description"
+          value={popupDescription}
+          rows={4}
+          onChange={(value) => onChange({ popupDescription: value })}
+        />
+        <TextControl
+          label="Popup button text"
+          value={popupButtonText}
+          onChange={(value) => onChange({ popupButtonText: value })}
+        />
+      </PanelBody>
+      <ActionBuilder
+        label="Tap action"
+        value={action ?? {}}
+        onChange={(next) => onChange({ action: next })}
+      />
+    </>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Child: core/trust-badges-item — one badge (icon + label + tap action)
 // ---------------------------------------------------------------------------
@@ -55,11 +99,14 @@ function registerTrustBadgesItem() {
     attributes: {
       icon: { type: 'string', default: '' },
       label: { type: 'string', default: '' },
+      popupTitle: { type: 'string', default: '' },
+      popupDescription: { type: 'string', default: '' },
+      popupButtonText: { type: 'string', default: '' },
       action: { type: 'object', default: {} },
     },
 
     edit: ({ attributes, setAttributes }) => {
-      const { icon, label, action } = attributes;
+      const { icon, label } = attributes;
       const blockProps = useBlockProps({
         className: 'riyasat-trust-badges-item-editor',
       });
@@ -69,22 +116,9 @@ function registerTrustBadgesItem() {
           <InspectorControls group="content">
             <div style={contentTabStyle}>
               <PanelBody title="Badge" initialOpen={true}>
-                <ImagePicker
-                  imageUrl={icon}
-                  addLabel="Add icon"
-                  changeLabel="Change icon"
-                  onSelect={(url) => setAttributes({ icon: url })}
-                  onClear={() => setAttributes({ icon: '' })}
-                />
-                <TextControl
-                  label="Label"
-                  value={label}
-                  onChange={(value) => setAttributes({ label: value })}
-                />
-                <ActionBuilder
-                  label="Tap action"
-                  value={action}
-                  onChange={(next) => setAttributes({ action: next })}
+                <TrustBadgeFields
+                  attributes={attributes}
+                  onChange={(next) => setAttributes(next)}
                 />
               </PanelBody>
             </div>
@@ -142,10 +176,14 @@ function registerTrustBadgesItem() {
     },
 
     save: ({ attributes }) => {
-      const { icon, label, action } = attributes;
+      const { icon, label, popupTitle, popupDescription, popupButtonText, action } =
+        attributes;
       const blockProps = useBlockProps.save({
         className: 'riyasat-trust-badges__item',
         'data-action': JSON.stringify(action ?? {}),
+        'data-popup-title': popupTitle || '',
+        'data-popup-description': popupDescription || '',
+        'data-popup-button-text': popupButtonText || '',
       });
       return (
         <div {...blockProps}>
@@ -190,33 +228,16 @@ function registerTrustBadgesParent() {
           <InspectorControls group="content">
             <div style={contentTabStyle}>
               {childBlocks.map((block, index) => {
-                const { icon, label, action } = block.attributes;
+                const badgeLabel = block.attributes.label;
                 return (
                   <PanelBody
                     key={block.clientId}
-                    title={`Badge ${index + 1}`}
+                    title={`Badge ${index + 1}${badgeLabel ? `: ${badgeLabel}` : ''}`}
                     initialOpen={false}
                   >
-                    <ImagePicker
-                      imageUrl={icon}
-                      addLabel="Add icon"
-                      changeLabel="Change icon"
-                      onSelect={(url) => updateBlockAttributes(block.clientId, { icon: url })}
-                      onClear={() => updateBlockAttributes(block.clientId, { icon: '' })}
-                    />
-                    <TextControl
-                      label="Label"
-                      value={label}
-                      onChange={(value) =>
-                        updateBlockAttributes(block.clientId, { label: value })
-                      }
-                    />
-                    <ActionBuilder
-                      label="Tap action"
-                      value={action}
-                      onChange={(next) =>
-                        updateBlockAttributes(block.clientId, { action: next })
-                      }
+                    <TrustBadgeFields
+                      attributes={block.attributes}
+                      onChange={(next) => updateBlockAttributes(block.clientId, next)}
                     />
                     {childCount > 1 ? (
                       <Button
