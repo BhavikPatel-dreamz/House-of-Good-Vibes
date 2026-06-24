@@ -10,11 +10,6 @@
 /* Horizontal scroll tracks — hide scrollbar, smooth snap scroll like Product Scroller */
 /* .riyasat-product-scroller__track,
 .riyasat-image-slider__track,
-.riyasat-editors-pick__track,
-.riyasat-client-stories__track,
-.riyasat-visit-our-stores__track,
-.riyasat-shop-the-look__track,
-.riyasat-occasion-tab__track,
 .riyasat-categories-scroller__track {
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
@@ -25,11 +20,6 @@
 
 .riyasat-product-scroller__track::-webkit-scrollbar,
 .riyasat-image-slider__track::-webkit-scrollbar,
-.riyasat-editors-pick__track::-webkit-scrollbar,
-.riyasat-client-stories__track::-webkit-scrollbar,
-.riyasat-visit-our-stores__track::-webkit-scrollbar,
-.riyasat-shop-the-look__track::-webkit-scrollbar,
-.riyasat-occasion-tab__track::-webkit-scrollbar,
 .riyasat-categories-scroller__track::-webkit-scrollbar {
   display: none;
   width: 0;
@@ -37,11 +27,11 @@
 } */
 
 /* InnerBlocks editor tracks — same flex + snap layout as Product Scroller */
-[class$="-editor"]:not(.riyasat-image-carousel-editor):not(.riyasat-hero-banner-slider-editor) [class*="__track"] .block-editor-inner-blocks {
+[class$="-editor"]:not(.riyasat-image-carousel-editor) [class*="__track"] .block-editor-inner-blocks {
   min-width: 0;
 }
 
-[class$="-editor"]:not(.riyasat-image-carousel-editor):not(.riyasat-hero-banner-slider-editor) [class*="__track"] .block-editor-block-list__layout {
+[class$="-editor"]:not(.riyasat-image-carousel-editor) [class*="__track"] .block-editor-block-list__layout {
   display: flex !important;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -51,8 +41,8 @@
   align-items: stretch;
 }
 
-[class$="-editor"]:not(.riyasat-image-carousel-editor):not(.riyasat-hero-banner-slider-editor) [class*="__track"] .block-editor-block-list__layout > *,
-[class$="-editor"]:not(.riyasat-image-carousel-editor):not(.riyasat-hero-banner-slider-editor) [class*="__track"] .block-editor-block-list__block {
+[class$="-editor"]:not(.riyasat-image-carousel-editor) [class*="__track"] .block-editor-block-list__layout > *,
+[class$="-editor"]:not(.riyasat-image-carousel-editor) [class*="__track"] .block-editor-block-list__block {
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
@@ -65,15 +55,9 @@
 /* Pagination row */
 .riyasat-pagination,
 .riyasat-image-slider__pagination,
-.riyasat-editors-pick__pagination,
-.riyasat-client-stories__pagination,
-.riyasat-visit-our-stores__pagination,
-.riyasat-shop-the-look__pagination,
 .riyasat-product-scroller__pagination,
-.riyasat-occasion__pagination,
 .riyasat-image-carousel__pagination,
-.riyasat-categories-scroller__pagination,
-.riyasat-hero-banner-slider__pagination {
+.riyasat-categories-scroller__pagination {
   display: flex;
   gap: 0;
   justify-content: center;
@@ -87,15 +71,9 @@
 /* Dot buttons — inactive circle, active pill (see reference design) */
 .riyasat-pagination__dot,
 .riyasat-image-slider__dot,
-.riyasat-editors-pick__dot,
-.riyasat-client-stories__dot,
-.riyasat-visit-our-stores__dot,
-.riyasat-occasion__dot,
 .riyasat-product-scroller__pagination-dot,
-.riyasat-shop-the-look__pagination-dot,
 .riyasat-image-carousel__dot,
-.riyasat-categories-scroller__dot,
-.riyasat-hero-banner-slider__dot {
+.riyasat-categories-scroller__dot {
   cursor: pointer;
   border: none;
   padding: 9px 4px;
@@ -111,15 +89,9 @@
 
 .riyasat-pagination__dot::after,
 .riyasat-image-slider__dot::after,
-.riyasat-editors-pick__dot::after,
-.riyasat-client-stories__dot::after,
-.riyasat-visit-our-stores__dot::after,
-.riyasat-occasion__dot::after,
 .riyasat-product-scroller__pagination-dot::after,
-.riyasat-shop-the-look__pagination-dot::after,
 .riyasat-image-carousel__dot::after,
-.riyasat-categories-scroller__dot::after,
-.riyasat-hero-banner-slider__dot::after {
+.riyasat-categories-scroller__dot::after {
   content: '';
   display: block;
   width: 8px;
@@ -134,15 +106,9 @@
 
 .riyasat-pagination__dot.is-active::after,
 .riyasat-image-slider__dot.is-active::after,
-.riyasat-editors-pick__dot.is-active::after,
-.riyasat-client-stories__dot.is-active::after,
-.riyasat-visit-our-stores__dot.is-active::after,
-.riyasat-occasion__dot.is-active::after,
 .riyasat-product-scroller__pagination-dot.is-active::after,
-.riyasat-shop-the-look__pagination-dot.is-active::after,
 .riyasat-image-carousel__dot.is-active::after,
-.riyasat-categories-scroller__dot.is-active::after,
-.riyasat-hero-banner-slider__dot.is-active::after {
+.riyasat-categories-scroller__dot.is-active::after {
   width: 22px;
   height: 8px;
   border-radius: 999px;
@@ -168,18 +134,10 @@
 }
 
 /* Editor field underlines (was Gutenberg blue) */
-.riyasat-image-slider-item-editor__label,
-.riyasat-editors-pick-item-editor__field,
-.riyasat-client-stories-item-editor__field,
-.riyasat-visit-our-stores-item-editor__field,
-.riyasat-trust-badges-item-editor__label,
-.riyasat-occasion-tab-item-editor__label {
+.riyasat-image-slider-item-editor__label {
   border-bottom-color: var(--riyasat-field-border) !important;
 }
 
-.riyasat-trust-badges-editor .block-editor-button-block-appender:hover {
-  border-color: var(--riyasat-field-border);
-}
 .builder-wrapper .editor-canvas-wrapper .block-editor-block-list__layout {
   overflow-x: hidden !important;
 }

@@ -7,20 +7,9 @@ import {
 } from "gutenberg-block-kit/wp/blocks";
 import { RIYASAT_BLOCKS, RIYASAT_CATEGORY } from "./constants";
 import { registerImageCarousel } from "./carousel";
-import { registerTrustBadges } from "./trust-badges";
 import { registerImageSlider } from "./image-slider";
 import { registerProductScroller } from "./product-scroller";
-import { registerFreeConsultation } from "./free-consultation";
-import { registerEditorsPick } from "./editors-pick";
-import { registerInstaFeed } from "./insta-feed";
-import { registerClientStories } from "./client-stories";
-import { registerVisitOurStores } from "./visit-our-stores";
-import { registerShopTheLook } from "./shop-the-look";
-import { registerOccasion } from "./occasion";
 import { registerCategoriesScroller } from "./categories-scroller";
-import { registerHeroBannerSlider } from "./hero-banner-slider";
-import { registerOccasionCardsGrid } from "./occasion-cards-grid";
-import { registerReadyToShipBanner } from "./ready-to-ship-banner";
 import { registerStandardBanner } from "./banner";
 import { registerStandardVideo } from "./video";
 import { registerStandardSpacer } from "./spacer";
@@ -52,20 +41,9 @@ export function registerRiyasatBlocks() {
     }
 
     registerImageCarousel();
-    registerTrustBadges();
     registerImageSlider();
     registerProductScroller();
-    registerFreeConsultation();
-    registerEditorsPick();
-    registerInstaFeed();
-    registerClientStories();
-    registerVisitOurStores();
-    registerShopTheLook();
-    registerOccasion();
     registerCategoriesScroller();
-    registerHeroBannerSlider();
-    registerOccasionCardsGrid();
-    registerReadyToShipBanner();
     registerStandardBanner();
     registerStandardVideo();
     registerStandardSpacer();

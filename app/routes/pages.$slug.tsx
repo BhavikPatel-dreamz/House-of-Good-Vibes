@@ -5,20 +5,9 @@ import { BlockRenderer } from "gutenberg-block-kit/renderer";
 import blockLibraryStyles from "@wordpress/block-library/build-style/style.css?url";
 import riyasatSharedUiStyles from "../blocks/riyasat/shared-ui.css?url";
 import riyasatCarouselStyles from "../blocks/riyasat/image-carousel.css?url";
-import riyasatTrustBadgesStyles from "../blocks/riyasat/trust-badges.css?url";
 import riyasatImageSliderStyles from "../blocks/riyasat/image-slider.css?url";
-import riyasatShopTheLookStyles from "../blocks/riyasat/shop-the-look.css?url";
 import riyasatProductScrollerStyles from "../blocks/riyasat/product-scroller.css?url";
-import riyasatFreeConsultationStyles from "../blocks/riyasat/free-consultation.css?url";
-import riyasatEditorsPickStyles from "../blocks/riyasat/editors-pick.css?url";
-import riyasatClientStoriesStyles from "../blocks/riyasat/client-stories.css?url";
-import riyasatVisitOurStoresStyles from "../blocks/riyasat/visit-our-stores.css?url";
-import riyasatInstaFeedStyles from "../blocks/riyasat/insta-feed.css?url";
-import riyasatOccasionStyles from "../blocks/riyasat/occasion.css?url";
 import riyasatCategoriesScrollerStyles from "../blocks/riyasat/categories-scroller.css?url";
-import riyasatHeroBannerSliderStyles from "../blocks/riyasat/hero-banner-slider.css?url";
-import riyasatOccasionCardsGridStyles from "../blocks/riyasat/occasion-cards-grid.css?url";
-import riyasatReadyToShipBannerStyles from "../blocks/riyasat/ready-to-ship-banner.css?url";
 import riyasatSelectedProductsStyles from "../blocks/riyasat/selected-products.css?url";
 
 import { getPageBySlug } from "../lib/cms.server";
@@ -27,20 +16,9 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: blockLibraryStyles },
   { rel: "stylesheet", href: riyasatSharedUiStyles },
   { rel: "stylesheet", href: riyasatCarouselStyles },
-  { rel: "stylesheet", href: riyasatTrustBadgesStyles },
   { rel: "stylesheet", href: riyasatImageSliderStyles },
-  { rel: "stylesheet", href: riyasatShopTheLookStyles },
   { rel: "stylesheet", href: riyasatProductScrollerStyles },
-  { rel: "stylesheet", href: riyasatFreeConsultationStyles },
-  { rel: "stylesheet", href: riyasatEditorsPickStyles },
-  { rel: "stylesheet", href: riyasatClientStoriesStyles },
-  { rel: "stylesheet", href: riyasatVisitOurStoresStyles },
-  { rel: "stylesheet", href: riyasatInstaFeedStyles },
-  { rel: "stylesheet", href: riyasatOccasionStyles },
   { rel: "stylesheet", href: riyasatCategoriesScrollerStyles },
-  { rel: "stylesheet", href: riyasatHeroBannerSliderStyles },
-  { rel: "stylesheet", href: riyasatOccasionCardsGridStyles },
-  { rel: "stylesheet", href: riyasatReadyToShipBannerStyles },
   { rel: "stylesheet", href: riyasatSelectedProductsStyles },
 ];
 
