@@ -35,7 +35,7 @@ export function registerRiyasatBlocks() {
     const categories = getCategories() as Array<{ slug: string }>;
     if (!categories.some((category) => category.slug === RIYASAT_CATEGORY)) {
       setCategories([
-        { slug: RIYASAT_CATEGORY, title: "Riyasat Blocks", icon: "slides" },
+        { slug: RIYASAT_CATEGORY, title: "Blocks", icon: "slides" },
         ...getCategories(),
       ]);
     }

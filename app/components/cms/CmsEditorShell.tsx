@@ -108,7 +108,9 @@ export function CmsEditorShell({
   pages = [],
 }: CmsEditorShellProps) {
   useEffect(() => {
-    import("gutenberg-block-kit/styles");
+    void import("gutenberg-block-kit/styles").then(() =>
+      import("../../styles/cms.css"),
+    );
     import("../../blocks/riyasat/shared-ui.css");
     import("../../blocks/riyasat/image-carousel.css");
     import("../../blocks/riyasat/image-slider.css");
@@ -122,24 +124,57 @@ export function CmsEditorShell({
   }, []);
 
   useEffect(() => {
-    function keepWidgetListOpen() {
-      const inserterToggle = document.querySelector(
-        ".cms-editor-shell .toolbar-inserter-btn",
+    function ensureWidgetListOpen() {
+      const root = document.querySelector(".cms-editor-shell");
+      if (!root) return;
+
+      const inserterToggle = root.querySelector(
+        ".toolbar-inserter-btn",
       ) as HTMLButtonElement | null;
 
-      if (
-        inserterToggle &&
-        inserterToggle.getAttribute("data-inserter-open") !== "true"
-      ) {
-        inserterToggle.click();
+      if (inserterToggle?.getAttribute("data-inserter-open") !== "true") {
+        inserterToggle?.click();
       }
     }
 
-    keepWidgetListOpen();
-    const observer = new MutationObserver(keepWidgetListOpen);
-    observer.observe(document.body, { childList: true, subtree: true });
+    function preventWidgetListClose(event: Event) {
+      const target = event.target as Element | null;
+      if (!target) return;
 
-    return () => observer.disconnect();
+      const inserterToggle = target.closest(
+        ".cms-editor-shell .toolbar-inserter-btn",
+      );
+      if (inserterToggle?.getAttribute("data-inserter-open") === "true") {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        return;
+      }
+
+      const inserterClose = target.closest(
+        ".cms-editor-shell .gbk-inserter-panel .block-editor-inserter-sidebar__header button",
+      );
+      if (inserterClose) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+      }
+    }
+
+    ensureWidgetListOpen();
+    const observer = new MutationObserver(ensureWidgetListOpen);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-inserter-open", "class"],
+    });
+    document.addEventListener("click", preventWidgetListClose, true);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("click", preventWidgetListClose, true);
+    };
   }, []);
 
   const [meta, setMeta] = useState<MetaState>({
@@ -197,9 +232,45 @@ export function CmsEditorShell({
     pageTitleRef.current = pageTitle;
   }, [pageTitle]);
 
+  // Route param changed (page switcher) — keep shell state aligned with the loader.
   useEffect(() => {
+    setCurrentPageId(pageId);
+    setMeta({
+      slug: initialSlug,
+      description: initialDescription,
+      seoTitle: initialSeoTitle,
+      seoDescription: initialSeoDescription,
+      ogImage: initialOgImage,
+      keywords: initialKeywords,
+      hideHeader: initialHideHeader,
+      showPageTitle: initialShowPageTitle,
+      backgroundColor: initialBackgroundColor,
+      renderingType: initialRenderingType,
+      headerId: initialHeaderId,
+      footerId: initialFooterId,
+      stickyHeaderId: initialStickyHeaderId,
+      stickyFooterId: initialStickyFooterId,
+    });
     setPageTitle(initialTitle);
-  }, [initialTitle]);
+    setMetaError(null);
+  }, [
+    pageId,
+    initialSlug,
+    initialDescription,
+    initialSeoTitle,
+    initialSeoDescription,
+    initialOgImage,
+    initialKeywords,
+    initialHideHeader,
+    initialShowPageTitle,
+    initialBackgroundColor,
+    initialRenderingType,
+    initialHeaderId,
+    initialFooterId,
+    initialStickyHeaderId,
+    initialStickyFooterId,
+    initialTitle,
+  ]);
 
   const syncKitPageTitle = useCallback((title: string) => {
     requestAnimationFrame(() => {
@@ -765,6 +836,7 @@ export function CmsEditorShell({
       />
 
       <ClientBlockEditor
+        key={pageId ?? "new"}
         fallback={<EditorFallback />}
         initialPageId={pageId}
         initialTitle={initialTitle}

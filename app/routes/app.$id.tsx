@@ -30,6 +30,7 @@ export default function CmsEditPage() {
 
   return (
     <CmsEditorShell
+      key={page.id}
       pageId={page.id}
       contentType={page.type}
       pages={siblingPages}

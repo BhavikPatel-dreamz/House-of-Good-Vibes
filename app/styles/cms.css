@@ -43,18 +43,39 @@
   display: none !important;
 }
 
-/* Remove "+" inserter toggle and keep widget list as the default left panel. */
+/* Remove "+" inserter toggle — blocks list is always visible in the left panel. */
+.cms-editor-shell .toolbar-inserter-btn,
 .cms-editor-shell .builder-wrapper .toolbar-inserter-btn {
   display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  clip: rect(0, 0, 0, 0) !important;
 }
 
-/* Hide inserter close button so left widget list stays available. */
+/* Hide inserter close button so the widget list cannot be dismissed. */
 .cms-editor-shell
   .builder-wrapper
   .gbk-inserter-panel
   .block-editor-inserter-sidebar__header
   button {
   display: none !important;
+  pointer-events: none !important;
+}
+
+/* Keep the left blocks panel docked open (kit uses .left-open for layout width). */
+.cms-editor-shell .builder-wrapper .editor-layout:not(.left-open) {
+  grid-template-columns: 340px minmax(0, 1fr) 360px !important;
+}
+
+.cms-editor-shell .builder-wrapper .editor-layout:not(.left-open).split-closed {
+  grid-template-columns: 340px minmax(0, 1fr) !important;
 }
 
 .cms-page-switcher {
