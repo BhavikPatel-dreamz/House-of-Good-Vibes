@@ -6,25 +6,52 @@ import type {
 import { useFetcher, useLoaderData, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
-import { deletePage, listPages, updatePage } from "../lib/cms.server";
+import {
+  deletePage,
+  listPages,
+  listPagesWithComponents,
+  updatePage,
+  type PageType,
+} from "../lib/cms.server";
 import { authenticate } from "../shopify.server";
+
+const TABS: { type: PageType; label: string; plural: string }[] = [
+  { type: "page", label: "page", plural: "Pages" },
+  { type: "header", label: "header", plural: "Headers" },
+  { type: "footer", label: "footer", plural: "Footers" },
+];
+
+function resolveType(value: string | null): PageType {
+  return value === "header" || value === "footer" ? value : "page";
+}
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const url = new URL(request.url);
   const q = (url.searchParams.get("q") || "").trim().toLowerCase();
+  const type = resolveType(url.searchParams.get("type"));
 
-  const allPages = await listPages(session.shop);
+  const records =
+    type === "page"
+      ? await listPagesWithComponents(session.shop)
+      : (await listPages(session.shop, type)).map((page) => ({
+          ...page,
+          headerTitle: "",
+          footerTitle: "",
+          stickyHeaderTitle: "",
+          stickyFooterTitle: "",
+        }));
+
   const pages = q
-    ? allPages.filter(
+    ? records.filter(
         (page) =>
           page.title.toLowerCase().includes(q) ||
           page.slug.toLowerCase().includes(q) ||
           page.description.toLowerCase().includes(q),
       )
-    : allPages;
+    : records;
 
-  return { pages, total: allPages.length, q };
+  return { pages, total: records.length, q, type };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -60,13 +87,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 type PageRow = ReturnType<typeof useLoaderData<typeof loader>>["pages"][number];
 
-function PageRowActions({ page }: { page: PageRow }) {
+function PageRowActions({
+  page,
+  showPreview,
+}: {
+  page: PageRow;
+  showPreview: boolean;
+}) {
   const fetcher = useFetcher<typeof action>();
   const busy = fetcher.state !== "idle";
 
   return (
     <s-stack direction="inline" gap="small">
-      <s-button href={`/app/cms/${page.id}`} variant="secondary">
+      <s-button href={`/app/${page.id}`} variant="secondary">
         Edit
       </s-button>
 
@@ -87,7 +120,7 @@ function PageRowActions({ page }: { page: PageRow }) {
         </s-button>
       </fetcher.Form>
 
-      {/* {page.status === "published" ? (
+      {showPreview && page.status === "published" ? (
         <s-button
           href={`/pages/${page.slug}`}
           target="_blank"
@@ -95,15 +128,13 @@ function PageRowActions({ page }: { page: PageRow }) {
         >
           Preview
         </s-button>
-      ) : null} */}
+      ) : null}
 
       <fetcher.Form
         method="post"
         onSubmit={(event) => {
           if (
-            !window.confirm(
-              `Delete “${page.title}”? This can't be undone.`,
-            )
+            !window.confirm(`Delete “${page.title}”? This can't be undone.`)
           ) {
             event.preventDefault();
           }
@@ -125,19 +156,47 @@ function PageRowActions({ page }: { page: PageRow }) {
 }
 
 export default function CmsIndex() {
-  const { pages, total, q } = useLoaderData<typeof loader>();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { pages, total, q, type } = useLoaderData<typeof loader>();
+  const [, setSearchParams] = useSearchParams();
+
+  const tab = TABS.find((t) => t.type === type) ?? TABS[0];
+  const isPage = type === "page";
 
   return (
-    <s-page heading="CMS Pages">
-      <s-button slot="primary-action" href="/app/cms/new">
-        Create page
+    <s-page heading="CMS">
+      <s-button slot="primary-action" href={`/app/new?type=${type}`}>
+        Create {tab.label}
       </s-button>
 
-      <s-section heading={`All pages (${total})`}>
+      <s-section>
         <s-stack direction="block" gap="base">
+          <s-stack direction="inline" gap="small">
+            {TABS.map((t) => (
+              <s-button
+                key={t.type}
+                variant={t.type === type ? "primary" : "tertiary"}
+                onClick={() =>
+                  setSearchParams(
+                    (prev) => {
+                      prev.set("type", t.type);
+                      prev.delete("q");
+                      return prev;
+                    },
+                    { replace: true },
+                  )
+                }
+              >
+                {t.plural}
+              </s-button>
+            ))}
+          </s-stack>
+
+          <s-heading>
+            All {tab.plural.toLowerCase()} ({total})
+          </s-heading>
+
           <s-search-field
-            label="Search pages"
+            label={`Search ${tab.plural.toLowerCase()}`}
             labelAccessibilityVisibility="exclusive"
             placeholder="Search by title, slug, or description"
             value={q}
@@ -160,11 +219,16 @@ export default function CmsIndex() {
           {pages.length === 0 ? (
             <s-paragraph>
               {q ? (
-                <>No pages match “{q}”.</>
+                <>
+                  No {tab.plural.toLowerCase()} match “{q}”.
+                </>
               ) : (
                 <>
-                  No pages yet.{" "}
-                  <s-link href="/app/cms/new">Create your first page</s-link>.
+                  No {tab.plural.toLowerCase()} yet.{" "}
+                  <s-link href={`/app/new?type=${type}`}>
+                    Create your first {tab.label}
+                  </s-link>
+                  .
                 </>
               )}
             </s-paragraph>
@@ -173,6 +237,9 @@ export default function CmsIndex() {
               <s-table-header-row>
                 <s-table-header>Title</s-table-header>
                 <s-table-header>Slug</s-table-header>
+                {isPage ? <s-table-header>Header</s-table-header> : null}
+                {isPage ? <s-table-header>Footer</s-table-header> : null}
+                {isPage ? <s-table-header>Sticky</s-table-header> : null}
                 <s-table-header>Status</s-table-header>
                 <s-table-header>Updated</s-table-header>
                 <s-table-header>Actions</s-table-header>
@@ -182,9 +249,7 @@ export default function CmsIndex() {
                   <s-table-row key={page.id}>
                     <s-table-cell>
                       <s-stack direction="block" gap="none">
-                        <s-link href={`/app/cms/${page.id}`}>
-                          {page.title}
-                        </s-link>
+                        <s-link href={`/app/${page.id}`}>{page.title}</s-link>
                         {page.description ? (
                           <s-text color="subdued">
                             {page.description.length > 80
@@ -197,6 +262,40 @@ export default function CmsIndex() {
                     <s-table-cell>
                       <s-text color="subdued">/{page.slug}</s-text>
                     </s-table-cell>
+                    {isPage ? (
+                      <s-table-cell>
+                        <s-text color="subdued">
+                          {page.headerTitle || "None"}
+                        </s-text>
+                      </s-table-cell>
+                    ) : null}
+                    {isPage ? (
+                      <s-table-cell>
+                        <s-text color="subdued">
+                          {page.footerTitle || "None"}
+                        </s-text>
+                      </s-table-cell>
+                    ) : null}
+                    {isPage ? (
+                      <s-table-cell>
+                        {page.stickyHeaderTitle || page.stickyFooterTitle ? (
+                          <s-stack direction="block" gap="none">
+                            {page.stickyHeaderTitle ? (
+                              <s-text color="subdued">
+                                ↑ {page.stickyHeaderTitle}
+                              </s-text>
+                            ) : null}
+                            {page.stickyFooterTitle ? (
+                              <s-text color="subdued">
+                                ↓ {page.stickyFooterTitle}
+                              </s-text>
+                            ) : null}
+                          </s-stack>
+                        ) : (
+                          <s-text color="subdued">None</s-text>
+                        )}
+                      </s-table-cell>
+                    ) : null}
                     <s-table-cell>
                       {page.status === "published" ? (
                         <s-badge tone="success">Published</s-badge>
@@ -206,15 +305,18 @@ export default function CmsIndex() {
                     </s-table-cell>
                     <s-table-cell>
                       <s-text color="subdued">
-                        {new Date(page.updatedAt).toLocaleDateString(undefined, {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
+                        {new Date(page.updatedAt).toLocaleDateString(
+                          undefined,
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          },
+                        )}
                       </s-text>
                     </s-table-cell>
                     <s-table-cell>
-                      <PageRowActions page={page} />
+                      <PageRowActions page={page} showPreview={isPage} />
                     </s-table-cell>
                   </s-table-row>
                 ))}

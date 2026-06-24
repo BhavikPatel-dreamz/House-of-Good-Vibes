@@ -225,14 +225,14 @@ export function CmsPageSwitcher({
         return;
       }
       setOpen(false);
-      navigate(`/app/cms/${pageId}`);
+      navigate(`/app/${pageId}`);
     },
     [currentPageId, navigate],
   );
 
   const createNew = useCallback(() => {
     setOpen(false);
-    navigate(`/app/cms/new?type=${contentType}`);
+    navigate(`/app/new?type=${contentType}`);
   }, [contentType, navigate]);
 
   if (!mountNode) {

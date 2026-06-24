@@ -14,7 +14,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const type = resolveType(new URL(request.url).searchParams.get("type"));
 
-  // Header/footer pickers are only needed when building a page.
   const [headers, footers, pages] = await Promise.all([
     type === "page"
       ? listSelectablePages(session.shop, "header")
