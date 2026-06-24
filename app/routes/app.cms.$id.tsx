@@ -14,20 +14,25 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     listSelectablePages(session.shop, "footer"),
   ]);
 
+  const siblingPages = page
+    ? await listSelectablePages(session.shop, page.type)
+    : [];
+
   if (!page) {
     throw new Response("Page not found", { status: 404 });
   }
 
-  return { page, headers, footers };
+  return { page, headers, footers, siblingPages };
 };
 
 export default function CmsEditPage() {
-  const { page, headers, footers } = useLoaderData<typeof loader>();
+  const { page, headers, footers, siblingPages } = useLoaderData<typeof loader>();
 
   return (
     <CmsEditorShell
       pageId={page.id}
       contentType={page.type}
+      pages={siblingPages}
       previewSlug={page.type === "page" ? page.slug : undefined}
       initialTitle={page.title}
       initialContent={page.json || page.html}

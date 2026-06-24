@@ -11,6 +11,7 @@ import {
   InspectorControls,
   MediaUpload,
   MediaUploadCheck,
+  PanelColorSettings,
 } from 'gutenberg-block-kit/wp/block-editor';
 import { PanelBody, ToggleControl, Button } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
@@ -26,6 +27,16 @@ import {
   IMAGE_CAROUSEL_ITEM_BLOCK,
   RIYASAT_CATEGORY,
 } from '../constants';
+
+const DEFAULT_ACTIVE_DOT_COLOR = 'rgba(255, 255, 255, 1)';
+const DEFAULT_INACTIVE_DOT_COLOR = 'rgba(255, 255, 255, 0.7)';
+
+function getCarouselDotColors(activeDotColor, inactiveDotColor) {
+  return {
+    '--riyasat-pagination-active': activeDotColor || DEFAULT_ACTIVE_DOT_COLOR,
+    '--riyasat-pagination-inactive': inactiveDotColor || DEFAULT_INACTIVE_DOT_COLOR,
+  };
+}
 
 function CarouselIcon() {
   return (
@@ -164,10 +175,13 @@ function registerCarouselParent() {
     supports: { html: false, align: ['wide', 'full'] },
     attributes: {
       showPagination: { type: 'boolean', default: true },
+      activeDotColor: { type: 'string', default: DEFAULT_ACTIVE_DOT_COLOR },
+      inactiveDotColor: { type: 'string', default: DEFAULT_INACTIVE_DOT_COLOR },
     },
 
     edit: ({ attributes, setAttributes, clientId }) => {
-      const { showPagination } = attributes;
+      const { showPagination, activeDotColor, inactiveDotColor } = attributes;
+      const dotColors = getCarouselDotColors(activeDotColor, inactiveDotColor);
       const blockProps = useBlockProps({ className: 'riyasat-image-carousel-editor' });
       const [activeIndex, setActiveIndex] = useState(0);
       const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
@@ -287,11 +301,35 @@ function registerCarouselParent() {
                 checked={showPagination}
                 onChange={(value) => setAttributes({ showPagination: value })}
               />
+              <PanelColorSettings
+                title="Pagination dots"
+                colorSettings={[
+                  {
+                    label: 'Active dot color',
+                    value: activeDotColor || DEFAULT_ACTIVE_DOT_COLOR,
+                    onChange: (value) =>
+                      setAttributes({
+                        activeDotColor: value || DEFAULT_ACTIVE_DOT_COLOR,
+                      }),
+                  },
+                  {
+                    label: 'Inactive dot color',
+                    value: inactiveDotColor || DEFAULT_INACTIVE_DOT_COLOR,
+                    onChange: (value) =>
+                      setAttributes({
+                        inactiveDotColor: value || DEFAULT_INACTIVE_DOT_COLOR,
+                      }),
+                  },
+                ]}
+              />
             </PanelBody>
           </InspectorControls>
 
           <div {...blockProps}>
-            <div className="riyasat-image-carousel" style={{ position: 'relative' }}>
+            <div
+              className="riyasat-image-carousel"
+              style={{ position: 'relative', ...dotColors }}
+            >
               <div
                 className="riyasat-image-carousel__track"
                 data-active-index={activeIndex}
@@ -335,10 +373,14 @@ function registerCarouselParent() {
     },
 
     save: ({ attributes }) => {
-      const { showPagination } = attributes;
+      const { showPagination, activeDotColor, inactiveDotColor } = attributes;
+      const dotColors = getCarouselDotColors(activeDotColor, inactiveDotColor);
       const blockProps = useBlockProps.save({
         className: 'riyasat-image-carousel',
         'data-show-pagination': showPagination ? 'true' : 'false',
+        'data-active-dot-color': activeDotColor || DEFAULT_ACTIVE_DOT_COLOR,
+        'data-inactive-dot-color': inactiveDotColor || DEFAULT_INACTIVE_DOT_COLOR,
+        style: dotColors,
       });
       return (
         <div {...blockProps}>

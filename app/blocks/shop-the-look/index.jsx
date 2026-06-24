@@ -108,12 +108,6 @@ function registerShopTheLookItem() {
                   />
                 </MediaUploadCheck>
                 <TextControl
-                  label="Video URL"
-                  value={videoUrl}
-                  onChange={(value) => setAttributes({ videoUrl: value })}
-                  help="Or paste a video URL directly."
-                />
-                <TextControl
                   label="Button text"
                   value={buttonText}
                   onChange={(value) => setAttributes({ buttonText: value })}
@@ -292,14 +286,6 @@ function registerShopTheLookParent() {
                         )}
                       />
                     </MediaUploadCheck>
-                    <TextControl
-                      label="Video URL"
-                      value={videoUrl}
-                      onChange={(value) =>
-                        updateBlockAttributes(block.clientId, { videoUrl: value })
-                      }
-                      help="Or paste a video URL directly."
-                    />
                     <TextControl
                       label="Button text"
                       value={buttonText}

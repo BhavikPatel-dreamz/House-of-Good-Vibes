@@ -46,10 +46,24 @@ function ReadyToShipBannerIcon() {
   );
 }
 
-const isVideoMedia = (media) => media?.type === 'video';
+const isVideoMedia = (media) =>
+  media?.type === 'video' ||
+  (typeof media?.type === 'string' && media.type.startsWith('video/'));
 
-function mediaTypeFromMime(mime) {
+function resolveMediaType(selected) {
+  const mime =
+    selected?.mime ||
+    selected?.mime_type ||
+    (typeof selected?.type === 'string' && selected.type.includes('/')
+      ? selected.type
+      : '');
+
   if (typeof mime === 'string' && mime.startsWith('video')) return 'video';
+  if (selected?.type === 'video') return 'video';
+
+  const url = selected?.url || selected?.source_url || '';
+  if (/\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(url)) return 'video';
+
   return 'image';
 }
 
@@ -97,35 +111,54 @@ function StatsRepeater({ stats, onChange }) {
   const items = Array.isArray(stats) ? stats : [];
 
   function updateStat(index, patch) {
-    const next = items.map((item, i) => (i === index ? { ...item, ...patch } : item));
+    const next = items.map((item, i) =>
+      i === index ? { ...(item || {}), ...patch } : { ...(item || {}) },
+    );
     onChange(next);
   }
 
   function addStat() {
-    onChange([...items, { value: '', label: '' }]);
+    onChange([...items.map((item) => ({ ...(item || {}) })), { value: '', label: '' }]);
   }
 
   function removeStat(index) {
-    onChange(items.filter((_, i) => i !== index));
+    onChange(items.filter((_, i) => i !== index).map((item) => ({ ...(item || {}) })));
   }
 
   return (
-    <>
+    <PanelBody title="Stats" initialOpen={false}>
       {items.map((stat, index) => (
-        <PanelBody
+        <div
           key={`stat-${index}`}
-          title={`Stat ${index + 1}${stat.label ? `: ${stat.label}` : ''}`}
-          initialOpen={false}
+          style={{
+            marginBottom: '16px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid #e5e7eb',
+          }}
         >
+          <p
+            style={{
+              margin: '0 0 10px',
+              fontSize: '11px',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              color: '#6b7280',
+            }}
+          >
+            Stat {index + 1}
+          </p>
           <TextControl
+            id={`ready-to-ship-stat-${index}-value`}
             label="Value"
-            value={stat.value ?? ''}
+            value={stat?.value ?? ''}
             onChange={(value) => updateStat(index, { value })}
           />
           <TextControl
+            id={`ready-to-ship-stat-${index}-label`}
             label="Label"
-            value={stat.label ?? ''}
-            onChange={(value) => updateStat(index, { label })}
+            value={stat?.label ?? ''}
+            onChange={(value) => updateStat(index, { label: value })}
           />
           <Button
             onClick={() => removeStat(index)}
@@ -135,16 +168,16 @@ function StatsRepeater({ stats, onChange }) {
           >
             Remove stat
           </Button>
-        </PanelBody>
+        </div>
       ))}
       <Button
         variant="secondary"
         onClick={addStat}
-        style={{ width: '100%', justifyContent: 'center', marginTop: '8px' }}
+        style={{ width: '100%', justifyContent: 'center' }}
       >
         Add stat
       </Button>
-    </>
+    </PanelBody>
   );
 }
 
@@ -163,7 +196,10 @@ export function registerReadyToShipBanner() {
       description: { type: 'string', default: '' },
       backgroundColor: { type: 'string', default: DEFAULT_BACKGROUND },
       media: { type: 'object', default: {} },
-      stats: { type: 'array', default: DEFAULT_STATS },
+      stats: {
+        type: 'array',
+        default: DEFAULT_STATS.map((stat) => ({ ...stat })),
+      },
       primaryButtonText: { type: 'string', default: '' },
       primaryButtonColor: { type: 'string', default: DEFAULT_PRIMARY_COLOR },
       primaryButtonBorderColor: { type: 'string', default: DEFAULT_PRIMARY_COLOR },
@@ -198,10 +234,11 @@ export function registerReadyToShipBanner() {
       const statItems = Array.isArray(stats) ? stats : [];
 
       function onSelectMedia(selected) {
+        const url = selected?.url ?? selected?.source_url ?? '';
         setAttributes({
           media: {
-            url: selected?.url ?? '',
-            type: mediaTypeFromMime(selected?.mime),
+            url,
+            type: resolveMediaType({ ...selected, url }),
           },
         });
       }
@@ -212,18 +249,21 @@ export function registerReadyToShipBanner() {
             <div style={contentTabStyle}>
               <PanelBody title="Heading" initialOpen={true}>
                 <TextControl
+                  id="ready-to-ship-main-title"
                   label="Main Title"
-                  value={title}
+                  value={title ?? ''}
                   onChange={(value) => setAttributes({ title: value })}
                 />
                 <TextControl
+                  id="ready-to-ship-sub-title"
                   label="Sub Title"
-                  value={subTitle}
+                  value={subTitle ?? ''}
                   onChange={(value) => setAttributes({ subTitle: value })}
                 />
                 <TextareaControl
+                  id="ready-to-ship-description"
                   label="Description"
-                  value={description}
+                  value={description ?? ''}
                   rows={4}
                   onChange={(value) => setAttributes({ description: value })}
                 />
@@ -271,12 +311,10 @@ export function registerReadyToShipBanner() {
                 </MediaUploadCheck>
               </PanelBody>
 
-              <PanelBody title="Stats" initialOpen={false}>
-                <StatsRepeater
-                  stats={statItems}
-                  onChange={(next) => setAttributes({ stats: next })}
-                />
-              </PanelBody>
+              <StatsRepeater
+                stats={statItems}
+                onChange={(next) => setAttributes({ stats: next })}
+              />
 
               <PanelBody title="Primary button" initialOpen={false}>
                 <TextControl

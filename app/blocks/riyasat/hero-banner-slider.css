@@ -2,6 +2,8 @@
   position: relative;
   width: 100%;
   overflow: hidden;
+  --riyasat-pagination-active: rgba(255, 255, 255, 1);
+  --riyasat-pagination-inactive: rgba(255, 255, 255, 0.7);
 }
 
 .riyasat-hero-banner-slider__track {
@@ -31,12 +33,7 @@
   color: #fff;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
 }
-.riyasat-hero-banner-slider__dot.is-active::after {
-  background: #fff;
-}
-.riyasat-hero-banner-slider__dot::after {
-  background: rgba(255, 255, 255, 0.5);
-}
+
 .riyasat-hero-banner-slider[data-top-content='true'] .riyasat-hero-banner-slider__content {
   top: 0;
   bottom: auto;

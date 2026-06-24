@@ -5,6 +5,7 @@ import { ClientBlockEditor } from "gutenberg-block-kit/editor-client";
 // the effect below.
 import { RIYASAT_BLOCKS } from "../../blocks/constants";
 import { cmsEditorActions } from "./actionsConfig";
+import { CmsPageSwitcher, type CmsPageListItem } from "./CmsPageSwitcher";
 import { FaCog, FaSearch } from "react-icons/fa";
 
 type MetaState = {
@@ -57,6 +58,7 @@ type CmsEditorShellProps = {
   initialStickyFooterId?: string;
   headers?: SelectableComponent[];
   footers?: SelectableComponent[];
+  pages?: CmsPageListItem[];
 };
 
 function EditorFallback() {
@@ -103,6 +105,7 @@ export function CmsEditorShell({
   initialStickyFooterId = "",
   headers = [],
   footers = [],
+  pages = [],
 }: CmsEditorShellProps) {
   useEffect(() => {
     import("gutenberg-block-kit/styles");
@@ -148,6 +151,7 @@ export function CmsEditorShell({
   const [uploadingOg, setUploadingOg] = useState(false);
   const [metaError, setMetaError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [pageTitle, setPageTitle] = useState(initialTitle);
 
   // The custom header buttons live inside the kit's editor chrome, so there's
   // no declarative commandFor activator to wire up — open the modals via their
@@ -178,6 +182,37 @@ export function CmsEditorShell({
     currentPageIdRef.current = currentPageId;
   }, [currentPageId]);
 
+  const pageTitleRef = useRef(pageTitle);
+  useEffect(() => {
+    pageTitleRef.current = pageTitle;
+  }, [pageTitle]);
+
+  useEffect(() => {
+    setPageTitle(initialTitle);
+  }, [initialTitle]);
+
+  const syncKitPageTitle = useCallback((title: string) => {
+    requestAnimationFrame(() => {
+      const input = document.querySelector(
+        ".cms-editor-shell .page-title-input",
+      ) as HTMLInputElement | null;
+      if (!input) {
+        return;
+      }
+
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(input, title);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  }, []);
+
+  useEffect(() => {
+    syncKitPageTitle(pageTitle);
+  }, [pageTitle, syncKitPageTitle]);
+
   const setField = useCallback(
     <K extends keyof MetaState>(key: K, value: MetaState[K]) => {
       setMeta((prev) => ({ ...prev, [key]: value }));
@@ -200,7 +235,7 @@ export function CmsEditorShell({
       try {
         const current = metaRef.current;
         const payload = {
-          title,
+          title: pageTitleRef.current.trim() || title,
           html,
           json,
           type: contentType,
@@ -438,6 +473,17 @@ export function CmsEditorShell({
         ) : null}
 
         <s-stack direction="block" gap="base">
+          <s-text-field
+            label={`${typeLabel} title`}
+            name="pageTitle"
+            value={pageTitle}
+            onChange={(e) => {
+              const nextTitle = e.currentTarget.value;
+              setPageTitle(nextTitle);
+              syncKitPageTitle(nextTitle);
+            }}
+          ></s-text-field>
+
           {/* Essentials — slug and excerpt side by side on wide viewports. */}
           <s-grid gridTemplateColumns={twoCol} gap="base">
             <s-text-field
@@ -700,6 +746,13 @@ export function CmsEditorShell({
           </s-button>
         </s-modal>
       ) : null}
+
+      <CmsPageSwitcher
+        currentPageId={currentPageId}
+        contentType={contentType}
+        currentTitle={pageTitle}
+        pages={pages}
+      />
 
       <ClientBlockEditor
         fallback={<EditorFallback />}

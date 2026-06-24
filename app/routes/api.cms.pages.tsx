@@ -3,12 +3,17 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { createPage, listSelectablePages } from "../lib/cms.server";
 import { authenticate } from "../shopify.server";
 
-// GET /api/cms/pages — list pages for the action builder's page-select field
-// (OPEN_INAPP_PAGE). Returns `{ id, title }[]` as the kit's `fetchPages` expects.
+function resolvePageType(value: string | null) {
+  return value === "header" || value === "footer" ? value : "page";
+}
+
+// GET /api/cms/pages — list CMS records for the action builder and page switcher.
+// Optional `?type=page|header|footer` (default page). Returns `{ id, title, slug, status }[]`.
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
-  const pages = await listSelectablePages(session.shop, "page");
-  return Response.json(pages.map((p) => ({ id: p.id, title: p.title })));
+  const type = resolvePageType(new URL(request.url).searchParams.get("type"));
+  const pages = await listSelectablePages(session.shop, type);
+  return Response.json(pages);
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {

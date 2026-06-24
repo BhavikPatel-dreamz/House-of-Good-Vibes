@@ -33,6 +33,17 @@ import {
 } from '../constants';
 
 const DEFAULT_PRIMARY_COLOR = '#971A4C';
+const DEFAULT_PRIMARY_TEXT_COLOR = '#FFFFFF';
+const DEFAULT_SECONDARY_TEXT_COLOR = '#971A4C';
+const DEFAULT_ACTIVE_DOT_COLOR = 'rgba(255, 255, 255, 1)';
+const DEFAULT_INACTIVE_DOT_COLOR = 'rgba(255, 255, 255, 0.7)';
+
+function getHeroBannerDotColors(activeDotColor, inactiveDotColor) {
+  return {
+    '--riyasat-pagination-active': activeDotColor || DEFAULT_ACTIVE_DOT_COLOR,
+    '--riyasat-pagination-inactive': inactiveDotColor || DEFAULT_INACTIVE_DOT_COLOR,
+  };
+}
 const HeroBannerTopContentContext = createContext(false);
 
 function HeroBannerSliderIcon() {
@@ -62,10 +73,12 @@ function HeroBannerSlideFields({ attributes, onChange }) {
     primaryButtonText,
     primaryButtonBackgroundColor,
     primaryButtonBorderColor,
+    primaryButtonTextColor,
     primaryButtonAction,
     secondaryButtonText,
     secondaryButtonBackgroundColor,
     secondaryButtonBorderColor,
+    secondaryButtonTextColor,
     secondaryButtonAction,
   } = attributes;
 
@@ -113,6 +126,12 @@ function HeroBannerSlideFields({ attributes, onChange }) {
               onChange: (value) =>
                 onChange({ primaryButtonBorderColor: value || DEFAULT_PRIMARY_COLOR }),
             },
+            {
+              label: 'Text color',
+              value: primaryButtonTextColor,
+              onChange: (value) =>
+                onChange({ primaryButtonTextColor: value || DEFAULT_PRIMARY_TEXT_COLOR }),
+            },
           ]}
         />
         <ActionBuilder
@@ -142,6 +161,14 @@ function HeroBannerSlideFields({ attributes, onChange }) {
               onChange: (value) =>
                 onChange({ secondaryButtonBorderColor: value || DEFAULT_PRIMARY_COLOR }),
             },
+            {
+              label: 'Text color',
+              value: secondaryButtonTextColor,
+              onChange: (value) =>
+                onChange({
+                  secondaryButtonTextColor: value || DEFAULT_SECONDARY_TEXT_COLOR,
+                }),
+            },
           ]}
         />
         <ActionBuilder
@@ -164,9 +191,11 @@ function HeroBannerSlidePreview({ attributes, setAttributes }) {
     primaryButtonText,
     primaryButtonBackgroundColor,
     primaryButtonBorderColor,
+    primaryButtonTextColor,
     secondaryButtonText,
     secondaryButtonBackgroundColor,
     secondaryButtonBorderColor,
+    secondaryButtonTextColor,
   } = attributes;
 
   const contentClass = topContent
@@ -230,6 +259,7 @@ function HeroBannerSlidePreview({ attributes, setAttributes }) {
               style={{
                 background: primaryButtonBackgroundColor || DEFAULT_PRIMARY_COLOR,
                 borderColor: primaryButtonBorderColor || DEFAULT_PRIMARY_COLOR,
+                color: primaryButtonTextColor || DEFAULT_PRIMARY_TEXT_COLOR,
               }}
             >
               {primaryButtonText}
@@ -241,6 +271,7 @@ function HeroBannerSlidePreview({ attributes, setAttributes }) {
               style={{
                 background: secondaryButtonBackgroundColor || 'transparent',
                 borderColor: secondaryButtonBorderColor || DEFAULT_PRIMARY_COLOR,
+                color: secondaryButtonTextColor || DEFAULT_SECONDARY_TEXT_COLOR,
               }}
             >
               {secondaryButtonText}
@@ -272,10 +303,12 @@ function registerHeroBannerSliderItem() {
       primaryButtonText: { type: 'string', default: '' },
       primaryButtonBackgroundColor: { type: 'string', default: DEFAULT_PRIMARY_COLOR },
       primaryButtonBorderColor: { type: 'string', default: DEFAULT_PRIMARY_COLOR },
+      primaryButtonTextColor: { type: 'string', default: DEFAULT_PRIMARY_TEXT_COLOR },
       primaryButtonAction: { type: 'object', default: {} },
       secondaryButtonText: { type: 'string', default: '' },
       secondaryButtonBackgroundColor: { type: 'string', default: 'transparent' },
       secondaryButtonBorderColor: { type: 'string', default: DEFAULT_PRIMARY_COLOR },
+      secondaryButtonTextColor: { type: 'string', default: DEFAULT_SECONDARY_TEXT_COLOR },
       secondaryButtonAction: { type: 'object', default: {} },
     },
 
@@ -313,10 +346,12 @@ function registerHeroBannerSliderItem() {
         primaryButtonText,
         primaryButtonBackgroundColor,
         primaryButtonBorderColor,
+        primaryButtonTextColor,
         primaryButtonAction,
         secondaryButtonText,
         secondaryButtonBackgroundColor,
         secondaryButtonBorderColor,
+        secondaryButtonTextColor,
         secondaryButtonAction,
       } = attributes;
 
@@ -326,8 +361,10 @@ function registerHeroBannerSliderItem() {
         'data-secondary-button-action': JSON.stringify(secondaryButtonAction ?? {}),
         'data-primary-button-background-color': primaryButtonBackgroundColor || '',
         'data-primary-button-border-color': primaryButtonBorderColor || '',
+        'data-primary-button-text-color': primaryButtonTextColor || '',
         'data-secondary-button-background-color': secondaryButtonBackgroundColor || '',
         'data-secondary-button-border-color': secondaryButtonBorderColor || '',
+        'data-secondary-button-text-color': secondaryButtonTextColor || '',
       });
 
       return (
@@ -350,6 +387,7 @@ function registerHeroBannerSliderItem() {
                   style={{
                     background: primaryButtonBackgroundColor || undefined,
                     borderColor: primaryButtonBorderColor || undefined,
+                    color: primaryButtonTextColor || undefined,
                   }}
                 >
                   {primaryButtonText}
@@ -361,6 +399,7 @@ function registerHeroBannerSliderItem() {
                   style={{
                     background: secondaryButtonBackgroundColor || undefined,
                     borderColor: secondaryButtonBorderColor || undefined,
+                    color: secondaryButtonTextColor || undefined,
                   }}
                 >
                   {secondaryButtonText}
@@ -389,11 +428,15 @@ function registerHeroBannerSliderParent() {
     attributes: {
       topContent: { type: 'boolean', default: false },
       showPagination: { type: 'boolean', default: true },
+      activeDotColor: { type: 'string', default: DEFAULT_ACTIVE_DOT_COLOR },
+      inactiveDotColor: { type: 'string', default: DEFAULT_INACTIVE_DOT_COLOR },
       action: { type: 'object', default: {} },
     },
 
     edit: ({ attributes, setAttributes, clientId }) => {
-      const { topContent, showPagination, action } = attributes;
+      const { topContent, showPagination, activeDotColor, inactiveDotColor, action } =
+        attributes;
+      const dotColors = getHeroBannerDotColors(activeDotColor, inactiveDotColor);
       const blockProps = useBlockProps({ className: 'riyasat-hero-banner-slider-editor' });
       const [activeIndex, setActiveIndex] = useState(0);
       const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
@@ -462,6 +505,27 @@ function registerHeroBannerSliderParent() {
                 checked={showPagination}
                 onChange={(value) => setAttributes({ showPagination: value })}
               />
+              <PanelColorSettings
+                title="Pagination dots"
+                colorSettings={[
+                  {
+                    label: 'Active dot color',
+                    value: activeDotColor || DEFAULT_ACTIVE_DOT_COLOR,
+                    onChange: (value) =>
+                      setAttributes({
+                        activeDotColor: value || DEFAULT_ACTIVE_DOT_COLOR,
+                      }),
+                  },
+                  {
+                    label: 'Inactive dot color',
+                    value: inactiveDotColor || DEFAULT_INACTIVE_DOT_COLOR,
+                    onChange: (value) =>
+                      setAttributes({
+                        inactiveDotColor: value || DEFAULT_INACTIVE_DOT_COLOR,
+                      }),
+                  },
+                ]}
+              />
               <ActionBuilder
                 label="Section action"
                 value={action ?? {}}
@@ -472,7 +536,7 @@ function registerHeroBannerSliderParent() {
 
           <HeroBannerTopContentContext.Provider value={topContent}>
             <div {...blockProps}>
-              <div className="riyasat-hero-banner-slider">
+              <div className="riyasat-hero-banner-slider" style={dotColors}>
                 <div
                   className="riyasat-hero-banner-slider__track"
                   data-active-index={activeIndex}
@@ -506,12 +570,17 @@ function registerHeroBannerSliderParent() {
     },
 
     save: ({ attributes }) => {
-      const { topContent, showPagination, action } = attributes;
+      const { topContent, showPagination, activeDotColor, inactiveDotColor, action } =
+        attributes;
+      const dotColors = getHeroBannerDotColors(activeDotColor, inactiveDotColor);
       const blockProps = useBlockProps.save({
         className: 'riyasat-hero-banner-slider',
         'data-top-content': topContent ? 'true' : 'false',
         'data-show-pagination': showPagination ? 'true' : 'false',
+        'data-active-dot-color': activeDotColor || DEFAULT_ACTIVE_DOT_COLOR,
+        'data-inactive-dot-color': inactiveDotColor || DEFAULT_INACTIVE_DOT_COLOR,
         'data-action': JSON.stringify(action ?? {}),
+        style: dotColors,
       });
       return (
         <div {...blockProps}>

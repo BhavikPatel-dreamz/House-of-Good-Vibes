@@ -15,19 +15,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const type = resolveType(new URL(request.url).searchParams.get("type"));
 
   // Header/footer pickers are only needed when building a page.
-  const [headers, footers] =
+  const [headers, footers, pages] = await Promise.all([
     type === "page"
-      ? await Promise.all([
-          listSelectablePages(session.shop, "header"),
-          listSelectablePages(session.shop, "footer"),
-        ])
-      : [[], []];
+      ? listSelectablePages(session.shop, "header")
+      : Promise.resolve([]),
+    type === "page"
+      ? listSelectablePages(session.shop, "footer")
+      : Promise.resolve([]),
+    listSelectablePages(session.shop, type),
+  ]);
 
-  return { type, headers, footers };
+  return { type, headers, footers, pages };
 };
 
 export default function CmsNewPage() {
-  const { type, headers, footers } = useLoaderData<typeof loader>();
+  const { type, headers, footers, pages } = useLoaderData<typeof loader>();
   const label =
     type === "header" ? "header" : type === "footer" ? "footer" : "page";
 
@@ -36,6 +38,7 @@ export default function CmsNewPage() {
       isNew
       contentType={type}
       initialTitle={`Untitled ${label}`}
+      pages={pages}
       headers={headers}
       footers={footers}
     />
