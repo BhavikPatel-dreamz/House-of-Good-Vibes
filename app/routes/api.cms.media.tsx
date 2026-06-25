@@ -21,7 +21,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return Response.json(result);
   } catch (error) {
     return Response.json(
-      { error: error instanceof Error ? error.message : "Failed to list images." },
+      { error: error instanceof Error ? error.message : "Failed to load media library." },
       { status: 500 },
     );
   }
@@ -46,7 +46,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return Response.json(item, { status: 201 });
   } catch (error) {
     return Response.json(
-      { error: error instanceof Error ? error.message : "Failed to upload image." },
+      { error: error instanceof Error ? error.message : "Failed to upload media." },
       { status: 500 },
     );
   }

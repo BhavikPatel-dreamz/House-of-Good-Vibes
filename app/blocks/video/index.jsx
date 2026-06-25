@@ -18,6 +18,7 @@ import { useEffect, useRef, useState } from 'gutenberg-block-kit/wp/element';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import { contentTabStyle } from '../inspector-shared';
 import { STANDARD_VIDEO_BLOCK, RIYASAT_CATEGORY } from '../constants';
+import { isVideoLikeMedia, normalizeUploadFile } from '../../lib/media-utils';
 
 const DEFAULT_HEIGHT = 300;
 
@@ -32,8 +33,9 @@ function getPickedMediaUrl(media) {
 }
 
 async function uploadMediaFile(file) {
+  const normalizedFile = normalizeUploadFile(file);
   const body = new FormData();
-  body.append('file', file);
+  body.append('file', normalizedFile);
 
   const response = await fetch('/api/cms/media', {
     method: 'POST',
@@ -64,6 +66,14 @@ function StandardVideoIcon() {
       />
     </svg>
   );
+}
+
+function isVideoMedia(media) {
+  return isVideoLikeMedia({
+    type: media?.type,
+    mimeType: media?.mimeType,
+    mime: media?.mime,
+  });
 }
 
 export function registerStandardVideo() {
@@ -130,6 +140,9 @@ export function registerStandardVideo() {
         setVideoError('');
         try {
           const uploaded = await uploadMediaFile(file);
+          if (!isVideoMedia(uploaded)) {
+            throw new Error('Uploaded media is not recognized as a video.');
+          }
           const nextUrl = getPickedMediaUrl(uploaded);
           if (!nextUrl) throw new Error('Upload succeeded but URL was missing.');
           setAttributes({ videoUrl: nextUrl });
@@ -186,7 +199,7 @@ export function registerStandardVideo() {
                   <input
                     ref={videoFileRef}
                     type="file"
-                    accept="video/*"
+                    accept="video/mp4,video/quicktime,video/webm,.mp4,.m4v,.mov,.webm"
                     style={{ display: 'none' }}
                     onChange={onVideoFileChange}
                   />

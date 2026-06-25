@@ -1,4 +1,5 @@
 import { createMediaRecord } from "./cms.server";
+import { isVideoLikeMedia, resolveUploadMimeType } from "./media-utils";
 
 type ShopifyAdminClient = {
   graphql: (
@@ -13,6 +14,7 @@ export type MediaItem = {
   alt?: string;
   title?: string;
   mimeType?: string;
+  type?: "image" | "video" | "file";
   width?: number;
   height?: number;
 };
@@ -61,6 +63,18 @@ const LIST_FILES_QUERY = `#graphql
             mimeType
             url
           }
+          ... on Video {
+            mimeType
+            originalSource {
+              url
+              mimeType
+            }
+            sources {
+              url
+              mimeType
+              format
+            }
+          }
         }
       }
     }
@@ -102,6 +116,18 @@ const FILE_CREATE_MUTATION = `#graphql
           url
           mimeType
         }
+        ... on Video {
+          mimeType
+          originalSource {
+            url
+            mimeType
+          }
+          sources {
+            url
+            mimeType
+            format
+          }
+        }
       }
       userErrors {
         field
@@ -116,30 +142,58 @@ const FILE_CREATE_MUTATION = `#graphql
 const FILE_STATUS_QUERY = `#graphql
   query CmsFileStatus($id: ID!) {
     node(id: $id) {
-      id
-      ... on MediaImage {
+      ... on File {
+        id
         alt
         fileStatus
-        mimeType
-        image {
-          url
-          altText
-          width
-          height
+        ... on MediaImage {
+          mimeType
+          image {
+            url
+            altText
+            width
+            height
+          }
         }
-      }
-      ... on GenericFile {
-        alt
-        fileStatus
-        url
-        mimeType
+        ... on GenericFile {
+          url
+          mimeType
+        }
+        ... on Video {
+          mimeType
+          originalSource {
+            url
+            mimeType
+          }
+          sources {
+            url
+            mimeType
+            format
+          }
+        }
       }
     }
   }`;
 
+function pickVideoUrl(node: {
+  originalSource?: { url?: string | null; mimeType?: string | null } | null;
+  sources?: Array<{ url?: string | null; mimeType?: string | null; format?: string | null }> | null;
+}): string | null {
+  const sources = node.sources ?? [];
+  const mp4 = sources.find((source) =>
+    (source.mimeType || "").toLowerCase().includes("video/mp4"),
+  );
+  if (mp4?.url) return mp4.url;
+  if (sources[0]?.url) return sources[0].url;
+  if (node.originalSource?.url) return node.originalSource.url;
+  return null;
+}
+
 function toMediaItem(node: {
   id: string;
   alt?: string | null;
+  fileStatus?: string | null;
+  type?: string | null;
   mimeType?: string | null;
   image?: {
     url?: string | null;
@@ -148,19 +202,35 @@ function toMediaItem(node: {
     height?: number | null;
   } | null;
   url?: string | null;
+  originalSource?: {
+    url?: string | null;
+    mimeType?: string | null;
+  } | null;
+  sources?: Array<{
+    url?: string | null;
+    mimeType?: string | null;
+    format?: string | null;
+  }> | null;
 }): MediaItem | null {
-  const url = node.image?.url || node.url;
+  const videoUrl = pickVideoUrl(node);
+  const url = node.image?.url || videoUrl || node.url;
 
   if (!url) {
     return null;
   }
+
+  const isVideo = isVideoLikeMedia({
+    type: node.type,
+    mimeType: node.mimeType || node.originalSource?.mimeType,
+  });
 
   return {
     id: node.id,
     url,
     alt: node.image?.altText || node.alt || undefined,
     title: node.alt || undefined,
-    mimeType: node.mimeType || undefined,
+    mimeType: node.mimeType || node.originalSource?.mimeType || undefined,
+    type: isVideo ? "video" : node.image?.url ? "image" : "file",
     width: node.image?.width ?? undefined,
     height: node.image?.height ?? undefined,
   };
@@ -230,7 +300,10 @@ export async function listImages(
 async function pollFileUntilReady(
   admin: ShopifyAdminClient,
   id: string,
-  { attempts = 10, delayMs = 600 }: { attempts?: number; delayMs?: number } = {},
+  {
+    attempts = 15,
+    delayMs = 700,
+  }: { attempts?: number; delayMs?: number } = {},
 ): Promise<MediaItem | null> {
   for (let i = 0; i < attempts; i += 1) {
     const response = await admin.graphql(FILE_STATUS_QUERY, {
@@ -287,24 +360,23 @@ export async function uploadImage(
   shop: string,
   file: File,
 ): Promise<MediaItem> {
-  const mimeType = file.type || "application/octet-stream";
-  const isVideo = mimeType.startsWith("video/");
-  // In this CMS flow we persist non-image uploads as GenericFile so we always
-  // get a stable public URL from `url`.
-  const stagedResource = isVideo ? "FILE" : "IMAGE";
-  const contentType = isVideo ? "FILE" : "IMAGE";
+  const mimeType = resolveUploadMimeType(file);
+  const isVideo = isVideoLikeMedia({ type: mimeType, mimeType });
+  const stagedResource = isVideo ? "VIDEO" : "IMAGE";
+  const contentType = isVideo ? "VIDEO" : "IMAGE";
+  const stagedInput: Record<string, string> = {
+    filename: file.name,
+    mimeType,
+    resource: stagedResource,
+    httpMethod: "POST",
+  };
+  if (isVideo) {
+    stagedInput.fileSize = String(file.size);
+  }
 
   const stagedResponse = await admin.graphql(STAGED_UPLOADS_MUTATION, {
     variables: {
-      input: [
-        {
-          filename: file.name,
-          mimeType,
-          resource: stagedResource,
-          fileSize: String(file.size),
-          httpMethod: "POST",
-        },
-      ],
+      input: [stagedInput],
     },
   });
 
@@ -344,7 +416,13 @@ export async function uploadImage(
   // response. Fall back to polling the node by id until the CDN url lands.
   const item =
     toMediaItem(createdFile) ??
-    (await pollFileUntilReady(admin, createdFile.id));
+    (await pollFileUntilReady(admin, createdFile.id, isVideo ? {
+      attempts: 45,
+      delayMs: 1000,
+    } : {
+      attempts: 15,
+      delayMs: 700,
+    }));
 
   if (!item) {
     throw new Error("Shopify file was created without a public URL.");

@@ -4,6 +4,7 @@ import { ClientBlockEditor } from "gutenberg-block-kit/editor-client";
 // modules (which pull the @wordpress/emotion runtime) are loaded client-only in
 // the effect below.
 import { RIYASAT_BLOCKS } from "../../blocks/constants";
+import { normalizeUploadFile } from "../../lib/media-utils";
 import { cmsEditorActions } from "./actionsConfig";
 import { CmsPageSwitcher, type CmsPageListItem } from "./CmsPageSwitcher";
 import { FaCog, FaSearch } from "react-icons/fa";
@@ -415,8 +416,9 @@ export function CmsEditorShell({
   );
 
   const uploadImage = useCallback(async (file: File) => {
+    const normalizedFile = normalizeUploadFile(file);
     const body = new FormData();
-    body.append("file", file);
+    body.append("file", normalizedFile);
 
     const response = await fetch("/api/cms/media", {
       method: "POST",
@@ -425,7 +427,7 @@ export function CmsEditorShell({
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.error || "Failed to upload image.");
+      throw new Error(error.error || "Failed to upload media.");
     }
 
     return response.json();

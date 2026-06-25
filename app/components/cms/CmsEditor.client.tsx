@@ -7,6 +7,7 @@ import "../../blocks/riyasat/product-scroller.css";
 import "../../blocks/riyasat/categories-scroller.css";
 import "../../blocks/riyasat/selected-products.css";
 import { BlockEditor } from "gutenberg-block-kit/editor";
+import { normalizeUploadFile } from "../../lib/media-utils";
 
 type CmsEditorProps = {
   pageId?: string;
@@ -114,8 +115,9 @@ export function CmsEditor({
   );
 
   const uploadImage = useCallback(async (file: File) => {
+    const normalizedFile = normalizeUploadFile(file);
     const body = new FormData();
-    body.append("file", file);
+    body.append("file", normalizedFile);
 
     const response = await fetch("/api/cms/media", {
       method: "POST",
@@ -124,7 +126,7 @@ export function CmsEditor({
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.error || "Failed to upload image.");
+      throw new Error(error.error || "Failed to upload media.");
     }
 
     return response.json();
