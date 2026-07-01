@@ -1,0 +1,46 @@
+--- a/dist/App-CfePUbir.mjs
++++ b/dist/App-CfePUbir.mjs
+@@ -1227,20 +1227,40 @@
+ }
+ //#endregion
+ //#region src/media/MediaLibraryModal.jsx
++function inferMimeFromFilename(name) {
++	const match = String(name || "").toLowerCase().match(/\.[^.]+$/);
++	const ext = match?.[0] ?? "";
++	const map = {
++		".mp4": "video/mp4",
++		".m4v": "video/mp4",
++		".mov": "video/quicktime",
++		".webm": "video/webm",
++		".ogv": "video/ogg",
++		".ogg": "video/ogg",
++		".jpg": "image/jpeg",
++		".jpeg": "image/jpeg",
++		".png": "image/png",
++		".gif": "image/gif",
++		".webp": "image/webp"
++	};
++	return map[ext] || "";
++}
+ function matchesAllowedTypes(item, allowedTypes) {
+ 	if (!allowedTypes?.length) return true;
+-	const mime = item.mimeType || item.mime || "image/jpeg";
++	const mime = item.mimeType || item.mime || (item.type === "video" ? "video/mp4" : item.type === "image" ? "image/jpeg" : "");
+ 	return allowedTypes.some((type) => {
+-		if (type === "image") return mime.startsWith("image/");
++		if (type === "image") return mime.startsWith("image/") || item.type === "image";
++		if (type === "video") return mime.startsWith("video/") || item.type === "video";
+ 		return mime === type || mime.startsWith(`${type}/`);
+ 	});
+ }
+ function fileMatchesAllowedTypes(file, allowedTypes) {
+-	if (!allowedTypes?.length) return file.type.startsWith("image/");
+-	const mime = file.type || "";
++	const mime = file.type || inferMimeFromFilename(file.name) || "";
++	if (!allowedTypes?.length) return mime.startsWith("image/");
+ 	return allowedTypes.some((type) => {
+ 		if (type === "image") return mime.startsWith("image/");
++		if (type === "video") return mime.startsWith("video/");
+ 		return mime === type || mime.startsWith(`${type}/`);
+ 	});
+ }

@@ -6,6 +6,22 @@ import { useSelect, useDispatch } from 'gutenberg-block-kit/wp/data';
 
 export const contentTabStyle = { padding: '0 16px 16px' };
 
+export function imageAttributesFromMedia(media, urlKey = 'imageUrl') {
+  return {
+    [urlKey]: media?.url ?? '',
+    imageWidth: media?.width ?? 0,
+    imageHeight: media?.height ?? 0,
+  };
+}
+
+export function clearImageAttributes(urlKey = 'imageUrl') {
+  return {
+    [urlKey]: '',
+    imageWidth: 0,
+    imageHeight: 0,
+  };
+}
+
 export function stopPaginationEvent(event) {
   event.preventDefault();
   event.stopPropagation();
@@ -307,7 +323,7 @@ export function ImagePicker({
   return (
     <MediaUploadCheck>
       <MediaUpload
-        onSelect={(media) => onSelect(media?.url ?? '')}
+        onSelect={(media) => onSelect(media)}
         allowedTypes={['image']}
         render={({ open }) => (
           <div>

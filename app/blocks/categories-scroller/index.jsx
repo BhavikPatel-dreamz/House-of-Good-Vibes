@@ -16,6 +16,8 @@ import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import {
   contentTabStyle,
   ImagePicker,
+  imageAttributesFromMedia,
+  clearImageAttributes,
   useChildBlocks,
   useSliderPagination,
   SliderPaginationDots,
@@ -60,6 +62,8 @@ function registerCategoriesScrollerItem() {
     supports: { html: false, reusable: false },
     attributes: {
       imageUrl: { type: 'string', default: '' },
+      imageWidth: { type: 'number', default: 0 },
+      imageHeight: { type: 'number', default: 0 },
       label: { type: 'string', default: '' },
       action: { type: 'object', default: {} },
     },
@@ -78,8 +82,8 @@ function registerCategoriesScrollerItem() {
               <PanelBody title="Category" initialOpen={true}>
                 <ImagePicker
                   imageUrl={imageUrl}
-                  onSelect={(url) => setAttributes({ imageUrl: url })}
-                  onClear={() => setAttributes({ imageUrl: '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
+                  onClear={() => setAttributes(clearImageAttributes())}
                 />
                 <TextControl
                   label="Label"
@@ -99,7 +103,7 @@ function registerCategoriesScrollerItem() {
             {imageUrl ? (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
                   allowedTypes={['image']}
                   render={({ open }) => (
                     <img
@@ -119,7 +123,7 @@ function registerCategoriesScrollerItem() {
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
                   allowedTypes={['image']}
                   render={({ open }) => (
                     <button
@@ -212,10 +216,15 @@ function registerCategoriesScrollerParent() {
                   >
                     <ImagePicker
                       imageUrl={imageUrl}
-                      onSelect={(url) =>
-                        updateBlockAttributes(block.clientId, { imageUrl: url })
+                      onSelect={(media) =>
+                        updateBlockAttributes(
+                          block.clientId,
+                          imageAttributesFromMedia(media),
+                        )
                       }
-                      onClear={() => updateBlockAttributes(block.clientId, { imageUrl: '' })}
+                      onClear={() =>
+                        updateBlockAttributes(block.clientId, clearImageAttributes())
+                      }
                     />
                     <TextControl
                       label="Label"

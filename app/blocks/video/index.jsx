@@ -9,7 +9,6 @@ import {
 } from 'gutenberg-block-kit/wp/block-editor';
 import {
   PanelBody,
-  TextControl,
   ToggleControl,
   RadioControl,
   Button,
@@ -18,7 +17,7 @@ import { useEffect, useRef, useState } from 'gutenberg-block-kit/wp/element';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import { contentTabStyle } from '../inspector-shared';
 import { STANDARD_VIDEO_BLOCK, RIYASAT_CATEGORY } from '../constants';
-import { isVideoLikeMedia, normalizeUploadFile } from '../../lib/media-utils';
+import { isVideoLikeMedia } from '../../lib/media-utils';
 
 const DEFAULT_HEIGHT = 300;
 
@@ -32,22 +31,11 @@ function getPickedMediaUrl(media) {
   );
 }
 
-async function uploadMediaFile(file) {
-  const normalizedFile = normalizeUploadFile(file);
-  const body = new FormData();
-  body.append('file', normalizedFile);
-
-  const response = await fetch('/api/cms/media', {
-    method: 'POST',
-    body,
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || 'Failed to upload media.');
-  }
-
-  return response.json();
+function getVideoAttributesFromMedia(media) {
+  return {
+    videoUrl: getPickedMediaUrl(media),
+    height: media?.height > 0 ? media.height : DEFAULT_HEIGHT,
+  };
 }
 
 function StandardVideoIcon() {
@@ -111,9 +99,6 @@ export function registerStandardVideo() {
         action,
       } = attributes;
       const blockProps = useBlockProps({ className: 'riyasat-standard-video-editor' });
-      const [uploadingVideo, setUploadingVideo] = useState(false);
-      const [videoError, setVideoError] = useState('');
-      const videoFileRef = useRef(null);
       const videoElRef = useRef(null);
       const [isPlaying, setIsPlaying] = useState(false);
 
@@ -131,28 +116,6 @@ export function registerStandardVideo() {
         }
       }, [isPlaying]);
 
-      async function onVideoFileChange(event) {
-        const file = event.target.files?.[0];
-        event.target.value = '';
-        if (!file) return;
-
-        setUploadingVideo(true);
-        setVideoError('');
-        try {
-          const uploaded = await uploadMediaFile(file);
-          if (!isVideoMedia(uploaded)) {
-            throw new Error('Uploaded media is not recognized as a video.');
-          }
-          const nextUrl = getPickedMediaUrl(uploaded);
-          if (!nextUrl) throw new Error('Upload succeeded but URL was missing.');
-          setAttributes({ videoUrl: nextUrl });
-        } catch (error) {
-          setVideoError(error instanceof Error ? error.message : 'Failed to upload video.');
-        } finally {
-          setUploadingVideo(false);
-        }
-      }
-
       return (
         <>
           <InspectorControls group="content">
@@ -161,7 +124,10 @@ export function registerStandardVideo() {
                 <MediaUploadCheck>
                   <MediaUpload
                     onSelect={(media) =>
-                      setAttributes({ thumbnailUrl: getPickedMediaUrl(media) })
+                      setAttributes({
+                        thumbnailUrl: getPickedMediaUrl(media),
+                        height: media?.height > 0 ? media.height : DEFAULT_HEIGHT,
+                      })
                     }
                     allowedTypes={['image']}
                     render={({ open }) => (
@@ -183,41 +149,31 @@ export function registerStandardVideo() {
                   />
                 </MediaUploadCheck>
 
-                <div style={{ marginBottom: '12px' }}>
-                  <Button
-                    onClick={() => videoFileRef.current?.click()}
-                    variant="secondary"
-                    style={{ width: '100%' }}
-                    disabled={uploadingVideo}
-                  >
-                    {uploadingVideo
-                      ? 'Uploading video...'
-                      : videoUrl
-                        ? 'Change video'
-                        : 'Add video'}
-                  </Button>
-                  <input
-                    ref={videoFileRef}
-                    type="file"
-                    accept="video/mp4,video/quicktime,video/webm,.mp4,.m4v,.mov,.webm"
-                    style={{ display: 'none' }}
-                    onChange={onVideoFileChange}
+                <MediaUploadCheck>
+                  <MediaUpload
+                    onSelect={(media) => {
+                      if (!isVideoMedia(media)) return;
+                      setAttributes(getVideoAttributesFromMedia(media));
+                    }}
+                    allowedTypes={['video']}
+                    render={({ open }) => (
+                      <div style={{ marginBottom: '12px' }}>
+                        <Button onClick={open} variant="secondary" style={{ width: '100%' }}>
+                          {videoUrl ? 'Change video' : 'Add video'}
+                        </Button>
+                        {videoUrl ? (
+                          <Button
+                            onClick={() => setAttributes({ videoUrl: '' })}
+                            variant="link"
+                            isDestructive
+                          >
+                            Remove video
+                          </Button>
+                        ) : null}
+                      </div>
+                    )}
                   />
-                  {videoError ? (
-                    <p style={{ margin: '6px 0 0', color: '#b91c1c', fontSize: '12px' }}>
-                      {videoError}
-                    </p>
-                  ) : null}
-                  {videoUrl ? (
-                    <Button
-                      onClick={() => setAttributes({ videoUrl: '' })}
-                      variant="link"
-                      isDestructive
-                    >
-                      Remove video
-                    </Button>
-                  ) : null}
-                </div>
+                </MediaUploadCheck>
 
                 <RadioControl
                   label="Resize mode"
@@ -227,15 +183,6 @@ export function registerStandardVideo() {
                     { label: 'Contain', value: 'contain' },
                   ]}
                   onChange={(value) => setAttributes({ resizeMode: value })}
-                />
-
-                <TextControl
-                  label="Height"
-                  type="number"
-                  value={String(height ?? DEFAULT_HEIGHT)}
-                  onChange={(value) =>
-                    setAttributes({ height: Number.parseInt(value || `${DEFAULT_HEIGHT}`, 10) })
-                  }
                 />
 
                 <ToggleControl

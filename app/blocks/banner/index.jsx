@@ -7,9 +7,13 @@ import {
   MediaUpload,
   MediaUploadCheck,
 } from 'gutenberg-block-kit/wp/block-editor';
-import { PanelBody, Button, TextControl } from 'gutenberg-block-kit/wp/components';
+import { PanelBody, Button } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
-import { contentTabStyle } from '../inspector-shared';
+import {
+  contentTabStyle,
+  imageAttributesFromMedia,
+  clearImageAttributes,
+} from '../inspector-shared';
 import { STANDARD_BANNER_BLOCK, RIYASAT_CATEGORY } from '../constants';
 
 function parseDimension(value, fallback = 0) {
@@ -108,7 +112,7 @@ export function registerStandardBanner() {
                 <MediaUploadCheck>
                   <MediaUpload
                     onSelect={(media) =>
-                      setAttributes({ imageUrl: media?.url ?? '' })
+                      setAttributes(imageAttributesFromMedia(media))
                     }
                     allowedTypes={['image']}
                     render={({ open }) => (
@@ -122,7 +126,7 @@ export function registerStandardBanner() {
                         </Button>
                         {imageUrl ? (
                           <Button
-                            onClick={() => setAttributes({ imageUrl: '' })}
+                            onClick={() => setAttributes(clearImageAttributes())}
                             variant="link"
                             isDestructive
                             style={{ marginTop: '4px' }}
@@ -134,24 +138,6 @@ export function registerStandardBanner() {
                     )}
                   />
                 </MediaUploadCheck>
-                <TextControl
-                  label="Image width"
-                  type="number"
-                  help="Width in pixels. Use 0 for full width."
-                  value={String(width)}
-                  onChange={(value) =>
-                    setAttributes({ imageWidth: parseDimension(value) })
-                  }
-                />
-                <TextControl
-                  label="Image height"
-                  type="number"
-                  help="Height in pixels. Use 0 for auto height."
-                  value={String(height)}
-                  onChange={(value) =>
-                    setAttributes({ imageHeight: parseDimension(value) })
-                  }
-                />
                 <ActionBuilder
                   label="Banner action"
                   value={action ?? {}}

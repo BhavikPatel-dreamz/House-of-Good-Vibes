@@ -18,6 +18,8 @@ import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import {
   contentTabStyle,
   ImagePicker,
+  imageAttributesFromMedia,
+  clearImageAttributes,
   useChildBlocks,
   useCarouselPagination,
   SliderPaginationDots,
@@ -73,6 +75,8 @@ function registerCarouselItem() {
     supports: { html: false, reusable: false },
     attributes: {
       imageUrl: { type: 'string', default: '' },
+      imageWidth: { type: 'number', default: 0 },
+      imageHeight: { type: 'number', default: 0 },
       action: { type: 'object', default: {} },
     },
 
@@ -90,8 +94,8 @@ function registerCarouselItem() {
               <PanelBody title="Slide" initialOpen={true}>
                 <ImagePicker
                   imageUrl={imageUrl}
-                  onSelect={(url) => setAttributes({ imageUrl: url })}
-                  onClear={() => setAttributes({ imageUrl: '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
+                  onClear={() => setAttributes(clearImageAttributes())}
                 />
                 <ActionBuilder
                   label="Tap action"
@@ -106,7 +110,7 @@ function registerCarouselItem() {
             {imageUrl ? (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
                   allowedTypes={['image']}
                   render={({ open }) => (
                     <img
@@ -126,7 +130,7 @@ function registerCarouselItem() {
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
                   allowedTypes={['image']}
                   render={({ open }) => (
                     <button
@@ -207,9 +211,10 @@ function registerCarouselParent() {
                     <MediaUploadCheck>
                       <MediaUpload
                         onSelect={(media) =>
-                          updateBlockAttributes(block.clientId, {
-                            imageUrl: media?.url ?? '',
-                          })
+                          updateBlockAttributes(
+                            block.clientId,
+                            imageAttributesFromMedia(media),
+                          )
                         }
                         allowedTypes={['image']}
                         render={({ open }) => (
@@ -243,7 +248,10 @@ function registerCarouselParent() {
                             {imageUrl ? (
                               <Button
                                 onClick={() =>
-                                  updateBlockAttributes(block.clientId, { imageUrl: '' })
+                                  updateBlockAttributes(
+                                    block.clientId,
+                                    clearImageAttributes(),
+                                  )
                                 }
                                 variant="link"
                                 isDestructive

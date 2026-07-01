@@ -1,6 +1,6 @@
 ---
 name: riyasat-block-builder
-description: Builds Gutenberg blocks for the Riyasat Shopify CMS from a block spec and sample JSON using gutenberg-block-kit. Use when the user pastes a block spec (lines like "#core/<name>" with "- attr(control)"), provides saved block JSON, or asks to add, create, or build a new CMS block or section.
+description: Build a Gutenberg block for the Riyasat Shopify CMS from a block spec + sample JSON. Trigger when the user pastes a block spec (lines like "#core/<name>" with "- attr(control)"), provides saved block JSON, or asks to add/create/build a new CMS block or section. Authoritative recipe lives in app/blocks/README.md.
 ---
 
 # Riyasat block builder
@@ -10,11 +10,10 @@ way the existing blocks were built. Optimize for low back-and-forth.
 
 ## On invocation
 
-1. **Read [app/blocks/README.md](../../../app/blocks/README.md)** — architecture,
-   SSR rule, conventions, control→component map, the 3 steps, and templates.
-   Follow it exactly. Do NOT re-investigate kit internals.
+1. **Read `app/blocks/README.md`** — it holds the architecture, SSR rule,
+   conventions, the control→component map, the 3 steps, and copy-paste
+   templates. Follow it exactly. Do NOT re-investigate the kit internals.
 2. Parse the user's spec. Expected shape (one or two blocks):
-
    ```
    Block name: <Human title>
    #core/<name>
@@ -23,13 +22,14 @@ way the existing blocks were built. Optimize for low back-and-forth.
    - <attr>(<control type>)
    <sample saved JSON>
    ```
-
    - JSON has `innerBlocks` with items → **parent + child** (`core/<x>` +
      `core/<x>-item`, child `parent:[...]`, registers first).
    - JSON `innerBlocks: []` → **single block**.
 3. Map every control via the README table (text→TextControl,
    text area→TextareaControl, toggle→ToggleControl, color→PanelColorSettings,
-   image→MediaUpload, image/video→MediaUpload `allowedTypes:['image','video']`
+   image→MediaUpload + `imageAttributesFromMedia` (see
+   `riyasat-media-dimensions` skill — auto width/height, no manual fields),
+   image/video→MediaUpload `allowedTypes:['image','video']`
    storing `{url,type:mime}`, action→ActionBuilder default `{}`,
    collection→`window.shopify.resourcePicker`, innerBlocks→InnerBlocks).
 4. Match attribute names + defaults to the sample JSON exactly (the JSON is the
@@ -47,7 +47,7 @@ way the existing blocks were built. Optimize for low back-and-forth.
 
 ## Verify (always run, report results)
 
-```bash
+```
 npx tsc --noEmit -p tsconfig.json     # only the pre-existing cms.server.ts error is allowed
 npx react-router build                 # must exit 0
 grep -rl "wp-runtime" build/server/   # must print nothing — SSR clean
@@ -63,6 +63,4 @@ grep -rl "wp-runtime" build/server/   # must print nothing — SSR clean
   `riyasat-<name>__*`. Don't write storefront CSS unless asked.
 - Names are `core/<name>` to match the saved JSON / mobile contract.
 
-## Reference implementations
-
-`app/blocks/{carousel,trust-badges,image-slider,product-scroller,free-consultation,editors-pick,occasion}/index.jsx`
+Reference implementations: `app/blocks/{carousel,trust-badges,image-slider,product-scroller,free-consultation,editors-pick}/index.jsx`.
