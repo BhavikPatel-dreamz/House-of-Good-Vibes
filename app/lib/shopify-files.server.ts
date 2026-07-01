@@ -33,6 +33,19 @@ type ListImagesResult = {
   totalPages: number;
 };
 
+function throwOnGraphqlErrors(
+  json: { errors?: Array<{ message?: string }> },
+  fallback: string,
+) {
+  const message = json.errors?.[0]?.message;
+  if (message) {
+    throw new Error(message);
+  }
+  if (json.errors?.length) {
+    throw new Error(fallback);
+  }
+}
+
 const LIST_FILES_QUERY = `#graphql
   query CmsListFiles($first: Int!, $after: String, $query: String) {
     files(
@@ -64,7 +77,6 @@ const LIST_FILES_QUERY = `#graphql
             url
           }
           ... on Video {
-            mimeType
             originalSource {
               url
               mimeType
@@ -117,7 +129,6 @@ const FILE_CREATE_MUTATION = `#graphql
           mimeType
         }
         ... on Video {
-          mimeType
           originalSource {
             url
             mimeType
@@ -160,7 +171,6 @@ const FILE_STATUS_QUERY = `#graphql
           mimeType
         }
         ... on Video {
-          mimeType
           originalSource {
             url
             mimeType
@@ -175,21 +185,13 @@ const FILE_STATUS_QUERY = `#graphql
     }
   }`;
 
-function pickVideoUrl(node: {
-  originalSource?: { url?: string | null; mimeType?: string | null } | null;
-  sources?: Array<{ url?: string | null; mimeType?: string | null; format?: string | null }> | null;
-}): string | null {
-  const sources = node.sources ?? [];
-  const mp4 = sources.find((source) =>
-    (source.mimeType || "").toLowerCase().includes("video/mp4"),
-  );
-  if (mp4?.url) return mp4.url;
-  if (sources[0]?.url) return sources[0].url;
-  if (node.originalSource?.url) return node.originalSource.url;
-  return null;
-}
+type VideoSourceNode = {
+  url?: string | null;
+  mimeType?: string | null;
+  format?: string | null;
+};
 
-function toMediaItem(node: {
+type FileNode = {
   id: string;
   alt?: string | null;
   fileStatus?: string | null;
@@ -202,34 +204,64 @@ function toMediaItem(node: {
     height?: number | null;
   } | null;
   url?: string | null;
-  originalSource?: {
-    url?: string | null;
-    mimeType?: string | null;
-  } | null;
-  sources?: Array<{
-    url?: string | null;
-    mimeType?: string | null;
-    format?: string | null;
-  }> | null;
-}): MediaItem | null {
+  originalSource?: VideoSourceNode | null;
+  sources?: VideoSourceNode[] | null;
+};
+
+function pickVideoUrl(node: Pick<FileNode, "originalSource" | "sources">): string | null {
+  const sources = node.sources ?? [];
+  const mp4 = sources.find((source) =>
+    (source.mimeType || "").toLowerCase().includes("video/mp4"),
+  );
+  if (mp4?.url) return mp4.url;
+  if (sources[0]?.url) return sources[0].url;
+  if (node.originalSource?.url) return node.originalSource.url;
+  return null;
+}
+
+function pickVideoMimeType(
+  node: Pick<FileNode, "originalSource" | "sources">,
+): string | undefined {
+  const sources = node.sources ?? [];
+  const mp4 = sources.find((source) =>
+    (source.mimeType || "").toLowerCase().includes("video/mp4"),
+  );
+  if (mp4?.mimeType) return mp4.mimeType;
+  if (sources[0]?.mimeType) return sources[0].mimeType;
+  if (node.originalSource?.mimeType) return node.originalSource.mimeType;
+  return undefined;
+}
+
+function isVideoNode(node: FileNode): boolean {
+  return Boolean(
+    node.originalSource ||
+      node.sources?.length ||
+      pickVideoUrl(node) ||
+      pickVideoMimeType(node),
+  );
+}
+
+function toMediaItem(node: FileNode): MediaItem | null {
   const videoUrl = pickVideoUrl(node);
+  const videoMime = pickVideoMimeType(node);
+  const isVideo = isVideoNode(node);
   const url = node.image?.url || videoUrl || node.url;
 
   if (!url) {
     return null;
   }
 
-  const isVideo = isVideoLikeMedia({
-    type: node.type,
-    mimeType: node.mimeType || node.originalSource?.mimeType,
-  });
+  const resolvedMime =
+    node.mimeType ||
+    videoMime ||
+    (isVideo ? "video/mp4" : undefined);
 
   return {
     id: node.id,
     url,
     alt: node.image?.altText || node.alt || undefined,
     title: node.alt || undefined,
-    mimeType: node.mimeType || node.originalSource?.mimeType || undefined,
+    mimeType: resolvedMime,
     type: isVideo ? "video" : node.image?.url ? "image" : "file",
     width: node.image?.width ?? undefined,
     height: node.image?.height ?? undefined,
@@ -260,6 +292,7 @@ export async function listImages(
     });
 
     const json = await response.json();
+    throwOnGraphqlErrors(json, "Failed to load media library.");
     const connection = json.data?.files;
 
     if (!connection) {
@@ -310,6 +343,7 @@ async function pollFileUntilReady(
       variables: { id },
     });
     const json = await response.json();
+    throwOnGraphqlErrors(json, "Failed to check uploaded file status.");
     const node = json.data?.node;
 
     if (node) {
@@ -381,6 +415,7 @@ export async function uploadImage(
   });
 
   const stagedJson = await stagedResponse.json();
+  throwOnGraphqlErrors(stagedJson, "Failed to create staged upload target.");
   const stagedTarget = stagedJson.data?.stagedUploadsCreate?.stagedTargets?.[0];
   const stagedErrors = stagedJson.data?.stagedUploadsCreate?.userErrors ?? [];
 
@@ -405,6 +440,7 @@ export async function uploadImage(
   });
 
   const createJson = await createResponse.json();
+  throwOnGraphqlErrors(createJson, "Failed to create Shopify file.");
   const createdFile = createJson.data?.fileCreate?.files?.[0];
   const createErrors = createJson.data?.fileCreate?.userErrors ?? [];
 
