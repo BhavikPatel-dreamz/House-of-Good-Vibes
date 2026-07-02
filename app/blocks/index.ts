@@ -10,6 +10,8 @@ import { registerImageCarousel } from "./carousel";
 import { registerImageSlider } from "./image-slider";
 import { registerProductScroller } from "./product-scroller";
 import { registerInstaFeed } from "./insta-feed";
+import { registerBlogs } from "./blogs";
+import { registerTransformationalCourses } from "./transformational-courses";
 import { registerCategoriesScroller } from "./categories-scroller";
 import { registerStandardBanner } from "./banner";
 import { registerStandardText } from "./text";
@@ -46,6 +48,8 @@ export function registerRiyasatBlocks() {
     registerImageSlider();
     registerProductScroller();
     registerInstaFeed();
+    registerBlogs();
+    registerTransformationalCourses();
     registerCategoriesScroller();
     registerStandardBanner();
     registerStandardText();

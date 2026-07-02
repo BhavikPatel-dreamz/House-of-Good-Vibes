@@ -13,6 +13,10 @@ export const PRODUCT_SCROLLER_BLOCK = "core/product-scroller";
 export const INSTA_FEED_BLOCK = "core/insta-feed";
 export const INSTA_FEED_ITEM_BLOCK = "core/insta-feed-item";
 
+export const BLOGS_BLOCK = "core/blogs";
+export const BLOGS_ITEM_BLOCK = "core/blogs-item";
+export const TRANSFORMATIONAL_COURSES_BLOCK = "core/transformational-courses";
+
 export const CATEGORIES_SCROLLER_BLOCK = "core/categories-scroller";
 export const CATEGORIES_SCROLLER_ITEM_BLOCK = "core/categories-scroller-item";
 
@@ -35,6 +39,9 @@ export const RIYASAT_BLOCKS = [
   PRODUCT_SCROLLER_BLOCK,
   INSTA_FEED_BLOCK,
   INSTA_FEED_ITEM_BLOCK,
+  BLOGS_BLOCK,
+  BLOGS_ITEM_BLOCK,
+  TRANSFORMATIONAL_COURSES_BLOCK,
   CATEGORIES_SCROLLER_BLOCK,
   CATEGORIES_SCROLLER_ITEM_BLOCK,
   STANDARD_BANNER_BLOCK,

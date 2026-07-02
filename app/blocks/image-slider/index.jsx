@@ -10,6 +10,7 @@ import {
   InspectorControls,
   MediaUpload,
   MediaUploadCheck,
+  PanelColorSettings,
 } from 'gutenberg-block-kit/wp/block-editor';
 import {
   PanelBody,
@@ -180,10 +181,11 @@ function registerImageSliderParent() {
       subTitle: { type: 'string', default: '' },
       showPagination: { type: 'boolean', default: true },
       gap: { type: 'number', default: 20 },
+      backgroundColor: { type: 'string', default: '#ffffff' },
     },
 
     edit: ({ attributes, setAttributes, clientId }) => {
-      const { title, subTitle, showPagination, gap } = attributes;
+      const { title, subTitle, showPagination, gap, backgroundColor } = attributes;
       const blockProps = useBlockProps({ className: 'riyasat-image-slider-editor' });
       const [activeIndex, setActiveIndex] = useState(0);
       const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
@@ -282,13 +284,27 @@ function registerImageSliderParent() {
                 checked={showPagination}
                 onChange={(value) => setAttributes({ showPagination: value })}
               />
+              <PanelColorSettings
+                title="Colors"
+                colorSettings={[
+                  {
+                    label: 'Background color',
+                    value: backgroundColor || '#ffffff',
+                    onChange: (value) =>
+                      setAttributes({ backgroundColor: value || '#ffffff' }),
+                  },
+                ]}
+              />
             </PanelBody>
           </InspectorControls>
 
           <div {...blockProps}>
             <div
               className="riyasat-image-slider"
-              style={{ '--riyasat-image-slider-gap': `${sliderGap}px` }}
+              style={{
+                '--riyasat-image-slider-gap': `${sliderGap}px`,
+                backgroundColor: backgroundColor || '#ffffff',
+              }}
             >
               {(title || subTitle) && (
                 <div className="riyasat-image-slider__heading">
@@ -331,12 +347,16 @@ function registerImageSliderParent() {
     },
 
     save: ({ attributes }) => {
-      const { title, subTitle, showPagination, gap } = attributes;
+      const { title, subTitle, showPagination, gap, backgroundColor } = attributes;
       const sliderGap = Number.isFinite(gap) ? Math.max(0, gap) : 20;
       const blockProps = useBlockProps.save({
         className: 'riyasat-image-slider',
         'data-show-pagination': showPagination ? 'true' : 'false',
-        style: { '--riyasat-image-slider-gap': `${sliderGap}px` },
+        'data-background-color': backgroundColor || '#ffffff',
+        style: {
+          '--riyasat-image-slider-gap': `${sliderGap}px`,
+          backgroundColor: backgroundColor || '#ffffff',
+        },
       });
       return (
         <div {...blockProps}>

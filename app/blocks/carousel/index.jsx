@@ -32,6 +32,7 @@ import {
 
 const DEFAULT_ACTIVE_DOT_COLOR = 'rgba(255, 255, 255, 1)';
 const DEFAULT_INACTIVE_DOT_COLOR = 'rgba(255, 255, 255, 0.7)';
+const DEFAULT_BACKGROUND_COLOR = '#ffffff';
 
 function getCarouselDotColors(activeDotColor, inactiveDotColor) {
   return {
@@ -179,12 +180,13 @@ function registerCarouselParent() {
     supports: { html: false, align: ['wide', 'full'] },
     attributes: {
       showPagination: { type: 'boolean', default: true },
+      backgroundColor: { type: 'string', default: DEFAULT_BACKGROUND_COLOR },
       activeDotColor: { type: 'string', default: DEFAULT_ACTIVE_DOT_COLOR },
       inactiveDotColor: { type: 'string', default: DEFAULT_INACTIVE_DOT_COLOR },
     },
 
     edit: ({ attributes, setAttributes, clientId }) => {
-      const { showPagination, activeDotColor, inactiveDotColor } = attributes;
+      const { showPagination, backgroundColor, activeDotColor, inactiveDotColor } = attributes;
       const dotColors = getCarouselDotColors(activeDotColor, inactiveDotColor);
       const blockProps = useBlockProps({ className: 'riyasat-image-carousel-editor' });
       const [activeIndex, setActiveIndex] = useState(0);
@@ -313,6 +315,14 @@ function registerCarouselParent() {
                 title="Pagination dots"
                 colorSettings={[
                   {
+                    label: 'Background color',
+                    value: backgroundColor || DEFAULT_BACKGROUND_COLOR,
+                    onChange: (value) =>
+                      setAttributes({
+                        backgroundColor: value || DEFAULT_BACKGROUND_COLOR,
+                      }),
+                  },
+                  {
                     label: 'Active dot color',
                     value: activeDotColor || DEFAULT_ACTIVE_DOT_COLOR,
                     onChange: (value) =>
@@ -336,7 +346,11 @@ function registerCarouselParent() {
           <div {...blockProps}>
             <div
               className="riyasat-image-carousel"
-              style={{ position: 'relative', ...dotColors }}
+              style={{
+                position: 'relative',
+                backgroundColor: backgroundColor || DEFAULT_BACKGROUND_COLOR,
+                ...dotColors,
+              }}
             >
               <div
                 className="riyasat-image-carousel__track"
@@ -381,14 +395,18 @@ function registerCarouselParent() {
     },
 
     save: ({ attributes }) => {
-      const { showPagination, activeDotColor, inactiveDotColor } = attributes;
+      const { showPagination, backgroundColor, activeDotColor, inactiveDotColor } = attributes;
       const dotColors = getCarouselDotColors(activeDotColor, inactiveDotColor);
       const blockProps = useBlockProps.save({
         className: 'riyasat-image-carousel',
         'data-show-pagination': showPagination ? 'true' : 'false',
+        'data-background-color': backgroundColor || DEFAULT_BACKGROUND_COLOR,
         'data-active-dot-color': activeDotColor || DEFAULT_ACTIVE_DOT_COLOR,
         'data-inactive-dot-color': inactiveDotColor || DEFAULT_INACTIVE_DOT_COLOR,
-        style: dotColors,
+        style: {
+          backgroundColor: backgroundColor || DEFAULT_BACKGROUND_COLOR,
+          ...dotColors,
+        },
       });
       return (
         <div {...blockProps}>
