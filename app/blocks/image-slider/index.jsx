@@ -179,15 +179,17 @@ function registerImageSliderParent() {
       title: { type: 'string', default: '' },
       subTitle: { type: 'string', default: '' },
       showPagination: { type: 'boolean', default: true },
+      gap: { type: 'number', default: 20 },
     },
 
     edit: ({ attributes, setAttributes, clientId }) => {
-      const { title, subTitle, showPagination } = attributes;
+      const { title, subTitle, showPagination, gap } = attributes;
       const blockProps = useBlockProps({ className: 'riyasat-image-slider-editor' });
       const [activeIndex, setActiveIndex] = useState(0);
       const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
         useChildBlocks(clientId);
       const { trackRef, slideCount, goToSlide } = useSliderPagination(clientId, activeIndex, setActiveIndex);
+      const sliderGap = Number.isFinite(gap) ? Math.max(0, gap) : 20;
 
       return (
         <>
@@ -266,6 +268,15 @@ function registerImageSliderParent() {
 
           <InspectorControls>
             <PanelBody title="Settings" initialOpen={true}>
+              <TextControl
+                label="Gap (px)"
+                help="Enter spacing between slides in pixels."
+                value={String(sliderGap)}
+                onChange={(value) =>
+                  setAttributes({
+                    gap: Math.max(0, Number.parseInt(value || `${sliderGap}`, 10) || 0),
+                  })}
+              />
               <ToggleControl
                 label="Show pagination"
                 checked={showPagination}
@@ -275,7 +286,10 @@ function registerImageSliderParent() {
           </InspectorControls>
 
           <div {...blockProps}>
-            <div className="riyasat-image-slider">
+            <div
+              className="riyasat-image-slider"
+              style={{ '--riyasat-image-slider-gap': `${sliderGap}px` }}
+            >
               {(title || subTitle) && (
                 <div className="riyasat-image-slider__heading">
                   {title ? (
@@ -317,10 +331,12 @@ function registerImageSliderParent() {
     },
 
     save: ({ attributes }) => {
-      const { title, subTitle, showPagination } = attributes;
+      const { title, subTitle, showPagination, gap } = attributes;
+      const sliderGap = Number.isFinite(gap) ? Math.max(0, gap) : 20;
       const blockProps = useBlockProps.save({
         className: 'riyasat-image-slider',
         'data-show-pagination': showPagination ? 'true' : 'false',
+        style: { '--riyasat-image-slider-gap': `${sliderGap}px` },
       });
       return (
         <div {...blockProps}>

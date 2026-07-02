@@ -34,6 +34,8 @@
   --riyasat-image-slider-slide-width: calc((100% - 20px) / 1.5);
   --riyasat-image-slider-card-height: 300px;
   --riyasat-image-slider-accent: var(--riyasat-accent);
+  --riyasat-image-slider-gap: 20px;
+  --riyasat-image-slider-slide-width: calc((100% - var(--riyasat-image-slider-gap)) / 1.5);
 }
 
 .riyasat-image-slider__track {
@@ -53,7 +55,7 @@
   display: flex !important;
   flex-direction: row;
   flex-wrap: nowrap;
-  gap: 20px;
+  gap: var(--riyasat-image-slider-gap);
   width: 100%;
   min-width: 100%;
   align-items: stretch;
@@ -166,7 +168,7 @@
 .riyasat-image-slider:not(.riyasat-image-slider-editor) .riyasat-image-slider__track {
   display: flex;
   flex-wrap: nowrap;
-  gap: 20px;
+  gap: var(--riyasat-image-slider-gap);
   overflow-x: auto;
   width: 100%;
   max-width: 100%;

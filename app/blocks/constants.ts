@@ -10,10 +10,14 @@ export const IMAGE_SLIDER_ITEM_BLOCK = "core/image-slider-item";
 
 export const PRODUCT_SCROLLER_BLOCK = "core/product-scroller";
 
+export const INSTA_FEED_BLOCK = "core/insta-feed";
+export const INSTA_FEED_ITEM_BLOCK = "core/insta-feed-item";
+
 export const CATEGORIES_SCROLLER_BLOCK = "core/categories-scroller";
 export const CATEGORIES_SCROLLER_ITEM_BLOCK = "core/categories-scroller-item";
 
 export const STANDARD_BANNER_BLOCK = "standard/banner";
+export const STANDARD_TEXT_BLOCK = "standard/text";
 export const STANDARD_VIDEO_BLOCK = "standard/video";
 export const STANDARD_SPACER_BLOCK = "standard/spacer";
 export const STANDARD_SELECTED_PRODUCTS_BLOCK = "standard/selected-products";
@@ -29,9 +33,12 @@ export const RIYASAT_BLOCKS = [
   IMAGE_SLIDER_BLOCK,
   IMAGE_SLIDER_ITEM_BLOCK,
   PRODUCT_SCROLLER_BLOCK,
+  INSTA_FEED_BLOCK,
+  INSTA_FEED_ITEM_BLOCK,
   CATEGORIES_SCROLLER_BLOCK,
   CATEGORIES_SCROLLER_ITEM_BLOCK,
   STANDARD_BANNER_BLOCK,
+  STANDARD_TEXT_BLOCK,
   STANDARD_VIDEO_BLOCK,
   STANDARD_SPACER_BLOCK,
   STANDARD_SELECTED_PRODUCTS_BLOCK,
