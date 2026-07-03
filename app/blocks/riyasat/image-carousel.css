@@ -15,7 +15,16 @@
   width: 100%;
 }
 
-.riyasat-image-carousel__slide img {
+.riyasat-image-carousel__slide img,
+.riyasat-image-carousel__slide .riyasat-image-carousel__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.riyasat-image-carousel__slide video,
+.riyasat-image-carousel__slide .riyasat-image-carousel__video {
   display: block;
   width: 100%;
   height: 100%;
@@ -116,7 +125,8 @@
 }
 
 .riyasat-image-carousel-item-editor__placeholder,
-.riyasat-image-carousel-item-editor__image {
+.riyasat-image-carousel-item-editor__image,
+.riyasat-image-carousel-item-editor__video {
   width: 100%;
   min-height: 280px;
   object-fit: cover;
