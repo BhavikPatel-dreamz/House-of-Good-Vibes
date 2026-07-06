@@ -34,7 +34,12 @@ function parseSettingsBody(body: unknown): ShopSettingsInput | null {
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const settings = await getShopSettings(session.shop);
-  return { settings };
+
+  return Response.json({
+    success: true,
+    settings,
+    public: toPublicShopSettings(settings),
+  });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
