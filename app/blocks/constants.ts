@@ -20,6 +20,10 @@ export const TRANSFORMATIONAL_COURSES_BLOCK = "core/transformational-courses";
 export const CATEGORIES_SCROLLER_BLOCK = "core/categories-scroller";
 export const CATEGORIES_SCROLLER_ITEM_BLOCK = "core/categories-scroller-item";
 
+export const MENU_ITEMS_BLOCK = "core/menu-items";
+export const MENU_ITEM_BLOCK = "core/menu-item";
+export const MENU_SUB_ITEM_BLOCK = "core/menu-sub-item";
+
 export const STANDARD_BANNER_BLOCK = "standard/banner";
 export const STANDARD_TEXT_BLOCK = "standard/text";
 export const STANDARD_VIDEO_BLOCK = "standard/video";
@@ -44,6 +48,9 @@ export const RIYASAT_BLOCKS = [
   TRANSFORMATIONAL_COURSES_BLOCK,
   CATEGORIES_SCROLLER_BLOCK,
   CATEGORIES_SCROLLER_ITEM_BLOCK,
+  MENU_ITEMS_BLOCK,
+  MENU_ITEM_BLOCK,
+  MENU_SUB_ITEM_BLOCK,
   STANDARD_BANNER_BLOCK,
   STANDARD_TEXT_BLOCK,
   STANDARD_VIDEO_BLOCK,

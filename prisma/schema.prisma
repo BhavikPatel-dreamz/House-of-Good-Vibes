@@ -86,3 +86,18 @@ model Media {
 
   @@index([shop])
 }
+
+model ShopSettings {
+  id                        String   @id @default(cuid())
+  shop                      String   @unique
+  androidAppVersion         String   @default("")
+  androidPlayStoreUrl       String   @default("")
+  androidForceUpdateEnabled Boolean  @default(false)
+  iosAppVersion             String   @default("")
+  iosAppStoreUrl            String   @default("")
+  iosForceUpdateEnabled     Boolean  @default(false)
+  backgroundMusicFileUrl    String   @default("")
+  backgroundMusicUrl        String   @default("")
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}

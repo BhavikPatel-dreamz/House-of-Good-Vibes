@@ -21,6 +21,7 @@ export default function App() {
         <s-link href="/app" rel="home">
           CMS
         </s-link>
+        <s-link href="/app/settings">Settings</s-link>
       </s-app-nav>
       <Outlet />
     </AppProvider>

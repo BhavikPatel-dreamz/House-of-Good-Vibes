@@ -13,6 +13,7 @@ import { registerInstaFeed } from "./insta-feed";
 import { registerBlogs } from "./blogs";
 import { registerTransformationalCourses } from "./transformational-courses";
 import { registerCategoriesScroller } from "./categories-scroller";
+import { registerMenuItems } from "./menu-items";
 import { registerStandardBanner } from "./banner";
 import { registerStandardText } from "./text";
 import { registerStandardVideo } from "./video";
@@ -51,6 +52,7 @@ export function registerRiyasatBlocks() {
     registerBlogs();
     registerTransformationalCourses();
     registerCategoriesScroller();
+    registerMenuItems();
     registerStandardBanner();
     registerStandardText();
     registerStandardVideo();

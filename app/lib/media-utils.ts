@@ -10,7 +10,11 @@ const EXTENSION_MIME_MAP: Record<string, string> = {
   mov: "video/quicktime",
   webm: "video/webm",
   ogv: "video/ogg",
-  ogg: "video/ogg",
+  ogg: "audio/ogg",
+  mp3: "audio/mpeg",
+  m4a: "audio/mp4",
+  aac: "audio/aac",
+  wav: "audio/wav",
 };
 
 function getExtension(filename: string): string {
@@ -58,5 +62,18 @@ export function isVideoLikeMedia(media?: MediaLike | null): boolean {
     type.startsWith("video/") ||
     mimeType.startsWith("video/") ||
     mime.startsWith("video/")
+  );
+}
+
+export function isAudioLikeMedia(media?: MediaLike | null): boolean {
+  if (!media) return false;
+  const type = (media.type || "").toLowerCase();
+  const mimeType = (media.mimeType || "").toLowerCase();
+  const mime = (media.mime || "").toLowerCase();
+  return (
+    type === "audio" ||
+    type.startsWith("audio/") ||
+    mimeType.startsWith("audio/") ||
+    mime.startsWith("audio/")
   );
 }

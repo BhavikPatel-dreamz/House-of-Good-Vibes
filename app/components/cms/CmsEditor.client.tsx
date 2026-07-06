@@ -5,6 +5,7 @@ import "../../blocks/riyasat/image-carousel.css";
 import "../../blocks/riyasat/image-slider.css";
 import "../../blocks/riyasat/product-scroller.css";
 import "../../blocks/riyasat/categories-scroller.css";
+import "../../blocks/riyasat/menu-items.css";
 import "../../blocks/riyasat/selected-products.css";
 import { BlockEditor } from "gutenberg-block-kit/editor";
 import { normalizeUploadFile } from "../../lib/media-utils";

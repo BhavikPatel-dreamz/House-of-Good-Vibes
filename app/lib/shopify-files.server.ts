@@ -1,5 +1,9 @@
 import { createMediaRecord } from "./cms.server";
-import { isVideoLikeMedia, resolveUploadMimeType } from "./media-utils";
+import {
+  isAudioLikeMedia,
+  isVideoLikeMedia,
+  resolveUploadMimeType,
+} from "./media-utils";
 
 type ShopifyAdminClient = {
   graphql: (
@@ -396,15 +400,16 @@ export async function uploadImage(
 ): Promise<MediaItem> {
   const mimeType = resolveUploadMimeType(file);
   const isVideo = isVideoLikeMedia({ type: mimeType, mimeType });
-  const stagedResource = isVideo ? "VIDEO" : "IMAGE";
-  const contentType = isVideo ? "VIDEO" : "IMAGE";
+  const isAudio = isAudioLikeMedia({ type: mimeType, mimeType });
+  const stagedResource = isVideo ? "VIDEO" : isAudio ? "FILE" : "IMAGE";
+  const contentType = isVideo ? "VIDEO" : isAudio ? "FILE" : "IMAGE";
   const stagedInput: Record<string, string> = {
     filename: file.name,
     mimeType,
     resource: stagedResource,
     httpMethod: "POST",
   };
-  if (isVideo) {
+  if (isVideo || isAudio) {
     stagedInput.fileSize = String(file.size);
   }
 
@@ -452,7 +457,7 @@ export async function uploadImage(
   // response. Fall back to polling the node by id until the CDN url lands.
   const item =
     toMediaItem(createdFile) ??
-    (await pollFileUntilReady(admin, createdFile.id, isVideo ? {
+    (await pollFileUntilReady(admin, createdFile.id, isVideo || isAudio ? {
       attempts: 45,
       delayMs: 1000,
     } : {
