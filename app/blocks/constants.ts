@@ -29,6 +29,7 @@ export const STANDARD_TEXT_BLOCK = "standard/text";
 export const STANDARD_VIDEO_BLOCK = "standard/video";
 export const STANDARD_SPACER_BLOCK = "standard/spacer";
 export const STANDARD_SELECTED_PRODUCTS_BLOCK = "standard/selected-products";
+export const STANDARD_SEARCH_BAR_BLOCK = "standard/search-bar";
 
 /**
  * Blocks kept registered + insertable. Everything else (all WP core blocks) is
@@ -56,4 +57,5 @@ export const RIYASAT_BLOCKS = [
   STANDARD_VIDEO_BLOCK,
   STANDARD_SPACER_BLOCK,
   STANDARD_SELECTED_PRODUCTS_BLOCK,
+  STANDARD_SEARCH_BAR_BLOCK,
 ];
