@@ -30,6 +30,11 @@ export const STANDARD_VIDEO_BLOCK = "standard/video";
 export const STANDARD_SPACER_BLOCK = "standard/spacer";
 export const STANDARD_SELECTED_PRODUCTS_BLOCK = "standard/selected-products";
 export const STANDARD_SEARCH_BAR_BLOCK = "standard/search-bar";
+export const STANDARD_BLOG_LIST_BLOCK = "standard/blog-list";
+export const STANDARD_HEALING_GUIDANCE_SESSIONS_BLOCK =
+  "standard/healing-guidance-sessions";
+export const STANDARD_HEALING_GUIDANCE_SESSION_BLOCK =
+  "standard/healing-guidance-session";
 
 /**
  * Blocks kept registered + insertable. Everything else (all WP core blocks) is
@@ -58,4 +63,7 @@ export const RIYASAT_BLOCKS = [
   STANDARD_SPACER_BLOCK,
   STANDARD_SELECTED_PRODUCTS_BLOCK,
   STANDARD_SEARCH_BAR_BLOCK,
+  STANDARD_BLOG_LIST_BLOCK,
+  STANDARD_HEALING_GUIDANCE_SESSIONS_BLOCK,
+  STANDARD_HEALING_GUIDANCE_SESSION_BLOCK,
 ];

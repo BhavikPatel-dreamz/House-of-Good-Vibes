@@ -20,6 +20,8 @@ import { registerStandardVideo } from "./video";
 import { registerStandardSpacer } from "./spacer";
 import { registerStandardSelectedProducts } from "./selected-products";
 import { registerStandardSearchBar } from "./search-bar";
+import { registerStandardBlogList } from "./blog-list";
+import { registerStandardHealingGuidanceSessions } from "./healing-guidance-sessions";
 
 let queued = false;
 
@@ -60,6 +62,8 @@ export function registerRiyasatBlocks() {
     registerStandardSpacer();
     registerStandardSelectedProducts();
     registerStandardSearchBar();
+    registerStandardBlogList();
+    registerStandardHealingGuidanceSessions();
 
     // Disable every block that isn't a riyasat block — this runs after the kit
     // has registered all WP core blocks (paragraph, image, heading, … and the
