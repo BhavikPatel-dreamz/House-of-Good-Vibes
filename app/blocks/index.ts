@@ -22,6 +22,7 @@ import { registerStandardSelectedProducts } from "./selected-products";
 import { registerStandardSearchBar } from "./search-bar";
 import { registerStandardBlogList } from "./blog-list";
 import { registerStandardHealingGuidanceSessions } from "./healing-guidance-sessions";
+import { registerStandardTodaysMeditation } from "./todays-meditation";
 
 let queued = false;
 
@@ -64,6 +65,7 @@ export function registerRiyasatBlocks() {
     registerStandardSearchBar();
     registerStandardBlogList();
     registerStandardHealingGuidanceSessions();
+    registerStandardTodaysMeditation();
 
     // Disable every block that isn't a riyasat block — this runs after the kit
     // has registered all WP core blocks (paragraph, image, heading, … and the

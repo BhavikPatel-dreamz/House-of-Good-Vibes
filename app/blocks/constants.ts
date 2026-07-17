@@ -35,6 +35,8 @@ export const STANDARD_HEALING_GUIDANCE_SESSIONS_BLOCK =
   "standard/healing-guidance-sessions";
 export const STANDARD_HEALING_GUIDANCE_SESSION_BLOCK =
   "standard/healing-guidance-session";
+export const STANDARD_TODAYS_MEDITATION_BLOCK =
+  "standard/todays-meditation";
 
 /**
  * Blocks kept registered + insertable. Everything else (all WP core blocks) is
@@ -66,4 +68,5 @@ export const RIYASAT_BLOCKS = [
   STANDARD_BLOG_LIST_BLOCK,
   STANDARD_HEALING_GUIDANCE_SESSIONS_BLOCK,
   STANDARD_HEALING_GUIDANCE_SESSION_BLOCK,
+  STANDARD_TODAYS_MEDITATION_BLOCK,
 ];
