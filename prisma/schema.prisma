@@ -98,6 +98,10 @@ model ShopSettings {
   iosForceUpdateEnabled     Boolean  @default(false)
   backgroundMusicFileUrl    String   @default("")
   backgroundMusicUrl        String   @default("")
+  productsTabCollection     Json     @default("{}")
+  coursesTabCollection      Json     @default("{}")
+  yagnasTabCollection       Json     @default("{}")
+  yagnasTabProduct          Json     @default("{}")
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
 }

@@ -6,6 +6,10 @@ import {
   upsertShopSettings,
   type ShopSettingsInput,
 } from "../lib/settings.server";
+import {
+  parseCollectionRef,
+  parseProductRef,
+} from "../lib/settings-resources";
 import { authenticate } from "../shopify.server";
 
 function parseBoolean(value: unknown): boolean {
@@ -28,6 +32,10 @@ function parseSettingsBody(body: unknown): ShopSettingsInput | null {
     iosForceUpdateEnabled: parseBoolean(input.iosForceUpdateEnabled),
     backgroundMusicFileUrl: String(input.backgroundMusicFileUrl ?? ""),
     backgroundMusicUrl: String(input.backgroundMusicUrl ?? ""),
+    productsTabCollection: parseCollectionRef(input.productsTabCollection),
+    coursesTabCollection: parseCollectionRef(input.coursesTabCollection),
+    yagnasTabCollection: parseCollectionRef(input.yagnasTabCollection),
+    yagnasTabProduct: parseProductRef(input.yagnasTabProduct),
   };
 }
 

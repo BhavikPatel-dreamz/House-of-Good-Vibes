@@ -32,11 +32,11 @@ export const STANDARD_SELECTED_PRODUCTS_BLOCK = "standard/selected-products";
 export const STANDARD_SEARCH_BAR_BLOCK = "standard/search-bar";
 export const STANDARD_BLOG_LIST_BLOCK = "standard/blog-list";
 export const STANDARD_HEALING_GUIDANCE_SESSIONS_BLOCK =
-  "standard/healing-guidance-sessions";
+  "core/healing-guidance-sessions";
 export const STANDARD_HEALING_GUIDANCE_SESSION_BLOCK =
-  "standard/healing-guidance-session";
+  "core/healing-guidance-session";
 export const STANDARD_TODAYS_MEDITATION_BLOCK =
-  "standard/todays-meditation";
+  "core/todays-meditation";
 export const STANDARD_HTML_BLOCK = "standard/html";
 export const ANGEL_CARDS_BLOCK = "core/angel-cards";
 export const ANGEL_CARD_ITEM_BLOCK = "core/angel-card-item";

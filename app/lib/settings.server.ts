@@ -1,6 +1,14 @@
 import type { ShopSettings } from "@prisma/client";
 
 import db from "../db.server";
+import {
+  EMPTY_COLLECTION_REF,
+  EMPTY_PRODUCT_REF,
+  parseCollectionRef,
+  parseProductRef,
+  type SettingsCollectionRef,
+  type SettingsProductRef,
+} from "./settings-resources";
 
 export type ShopSettingsInput = {
   androidAppVersion: string;
@@ -11,6 +19,10 @@ export type ShopSettingsInput = {
   iosForceUpdateEnabled: boolean;
   backgroundMusicFileUrl: string;
   backgroundMusicUrl: string;
+  productsTabCollection: SettingsCollectionRef;
+  coursesTabCollection: SettingsCollectionRef;
+  yagnasTabCollection: SettingsCollectionRef;
+  yagnasTabProduct: SettingsProductRef;
 };
 
 export const DEFAULT_SHOP_SETTINGS: ShopSettingsInput = {
@@ -22,6 +34,10 @@ export const DEFAULT_SHOP_SETTINGS: ShopSettingsInput = {
   iosForceUpdateEnabled: false,
   backgroundMusicFileUrl: "",
   backgroundMusicUrl: "",
+  productsTabCollection: { ...EMPTY_COLLECTION_REF },
+  coursesTabCollection: { ...EMPTY_COLLECTION_REF },
+  yagnasTabCollection: { ...EMPTY_COLLECTION_REF },
+  yagnasTabProduct: { ...EMPTY_PRODUCT_REF },
 };
 
 function serializeShopSettings(row: ShopSettings): ShopSettingsInput {
@@ -34,6 +50,10 @@ function serializeShopSettings(row: ShopSettings): ShopSettingsInput {
     iosForceUpdateEnabled: row.iosForceUpdateEnabled,
     backgroundMusicFileUrl: row.backgroundMusicFileUrl,
     backgroundMusicUrl: row.backgroundMusicUrl,
+    productsTabCollection: parseCollectionRef(row.productsTabCollection),
+    coursesTabCollection: parseCollectionRef(row.coursesTabCollection),
+    yagnasTabCollection: parseCollectionRef(row.yagnasTabCollection),
+    yagnasTabProduct: parseProductRef(row.yagnasTabProduct),
   };
 }
 
@@ -68,6 +88,18 @@ export type PublicShopSettings = {
     fileUrl: string | null;
     externalUrl: string | null;
   };
+  bottomTabActions: {
+    products: {
+      collection: SettingsCollectionRef;
+    };
+    courses: {
+      collection: SettingsCollectionRef;
+    };
+    yagnas: {
+      collection: SettingsCollectionRef;
+      product: SettingsProductRef;
+    };
+  };
 };
 
 export function toPublicShopSettings(
@@ -96,11 +128,23 @@ export function toPublicShopSettings(
       fileUrl: uploaded || null,
       externalUrl: external || null,
     },
+    bottomTabActions: {
+      products: {
+        collection: settings.productsTabCollection,
+      },
+      courses: {
+        collection: settings.coursesTabCollection,
+      },
+      yagnas: {
+        collection: settings.yagnasTabCollection,
+        product: settings.yagnasTabProduct,
+      },
+    },
   };
 }
 
 export async function getShopSettings(shop: string): Promise<ShopSettingsInput> {
-  const row = await db.shopSettings.findUnique({ where: { shop } });
+  const row = await db.shopSettings.findFirst({ where: { shop } });
   if (!row) {
     return { ...DEFAULT_SHOP_SETTINGS };
   }
