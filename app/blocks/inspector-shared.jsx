@@ -4,7 +4,12 @@ import { MediaUpload, MediaUploadCheck } from 'gutenberg-block-kit/wp/block-edit
 import { Button } from 'gutenberg-block-kit/wp/components';
 import { useSelect, useDispatch } from 'gutenberg-block-kit/wp/data';
 
-export const contentTabStyle = { padding: '0 16px 16px' };
+export const contentTabStyle = {
+  padding: '0 16px 16px',
+  maxHeight: 'calc(100vh - 220px)',
+  overflowY: 'auto',
+  overscrollBehavior: 'contain',
+};
 
 export function imageAttributesFromMedia(media, urlKey = 'imageUrl') {
   return {

@@ -7,6 +7,7 @@ import "../../blocks/riyasat/product-scroller.css";
 import "../../blocks/riyasat/categories-scroller.css";
 import "../../blocks/riyasat/menu-items.css";
 import "../../blocks/riyasat/selected-products.css";
+import "../../blocks/riyasat/standard-blocks.css";
 import { BlockEditor } from "gutenberg-block-kit/editor";
 import { normalizeUploadFile } from "../../lib/media-utils";
 

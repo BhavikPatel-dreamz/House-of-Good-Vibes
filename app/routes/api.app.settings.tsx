@@ -61,11 +61,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return Response.json({ error: "Invalid settings payload." }, { status: 400 });
   }
 
-  const settings = await upsertShopSettings(session.shop, input);
+  try {
+    const settings = await upsertShopSettings(session.shop, input);
 
-  return Response.json({
-    success: true,
-    settings,
-    public: toPublicShopSettings(settings),
-  });
+    return Response.json({
+      success: true,
+      settings,
+      public: toPublicShopSettings(settings),
+    });
+  } catch (error) {
+    console.error("Failed to save shop settings:", error);
+    const message =
+      error instanceof Error ? error.message : "Failed to save settings.";
+    return Response.json({ error: message }, { status: 500 });
+  }
 };

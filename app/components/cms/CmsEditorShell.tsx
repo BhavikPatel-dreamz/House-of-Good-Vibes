@@ -119,6 +119,7 @@ export function CmsEditorShell({
     import("../../blocks/riyasat/categories-scroller.css");
     import("../../blocks/riyasat/menu-items.css");
     import("../../blocks/riyasat/selected-products.css");
+    import("../../blocks/riyasat/standard-blocks.css");
     // Client-only: registers riyasat blocks via the kit's registerBlocks() hook.
     // Imported here (not at module top) so the @wordpress runtime never loads
     // during SSR — registerBlocks queues until the editor's registry inits.

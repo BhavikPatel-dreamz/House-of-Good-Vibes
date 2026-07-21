@@ -111,14 +111,19 @@ export async function upsertShopSettings(
   shop: string,
   input: ShopSettingsInput,
 ): Promise<ShopSettingsInput> {
-  const row = await db.shopSettings.upsert({
-    where: { shop },
-    create: {
-      shop,
-      ...input,
-    },
-    update: input,
-  });
+  const existing = await db.shopSettings.findFirst({ where: { shop } });
+
+  const row = existing
+    ? await db.shopSettings.update({
+        where: { id: existing.id },
+        data: input,
+      })
+    : await db.shopSettings.create({
+        data: {
+          shop,
+          ...input,
+        },
+      });
 
   return serializeShopSettings(row);
 }

@@ -170,13 +170,6 @@ function registerHealingGuidanceSession() {
 
       const blockProps = useBlockProps({
         className: 'riyasat-healing-guidance-session-editor',
-        style: {
-          border: '1px solid #e5e7eb',
-          borderRadius: '8px',
-          padding: '12px',
-          background: '#fff',
-          minWidth: '220px',
-        },
       });
 
       return (
@@ -291,61 +284,39 @@ function registerHealingGuidanceSession() {
               <img
                 src={image}
                 alt=""
-                style={{
-                  width: '100%',
-                  height: '120px',
-                  objectFit: 'cover',
-                  borderRadius: '6px',
-                  marginBottom: '8px',
-                  display: 'block',
-                }}
+                className="riyasat-healing-guidance-session-editor__image"
               />
             ) : (
-              <div
-                style={{
-                  height: '80px',
-                  border: '1px dashed #d1d5db',
-                  borderRadius: '6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#6b7280',
-                  marginBottom: '8px',
-                  fontSize: '12px',
-                }}
-              >
+              <div className="riyasat-healing-guidance-session-editor__placeholder">
                 Add session image
               </div>
             )}
-            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
+            <div className="riyasat-healing-guidance-session-editor__duration">
               {duration || DEFAULT_DURATION}
             </div>
-            <strong style={{ display: 'block', marginBottom: '4px' }}>
+            <strong className="riyasat-healing-guidance-session-editor__title">
               {title || DEFAULT_TITLE}
             </strong>
-            <div style={{ fontSize: '12px', color: '#374151', marginBottom: '6px' }}>
+            <div className="riyasat-healing-guidance-session-editor__description">
               {(description || DEFAULT_DESCRIPTION).slice(0, 90)}
               {(description || DEFAULT_DESCRIPTION).length > 90 ? '…' : ''}
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '6px' }}>
+            <div className="riyasat-healing-guidance-session-editor__tags">
               {tagItems.filter(Boolean).map((tag, index) => (
                 <span
                   key={`tag-preview-${index}`}
-                  style={{
-                    fontSize: '11px',
-                    background: '#f3f4f6',
-                    borderRadius: '999px',
-                    padding: '2px 8px',
-                  }}
+                  className="riyasat-healing-guidance-session-editor__tag"
                 >
                   {tag}
                 </span>
               ))}
             </div>
-            <div style={{ fontSize: '12px', marginBottom: '2px' }}>
+            <div className="riyasat-healing-guidance-session-editor__healer">
               {healerName || DEFAULT_HEALER_NAME}
             </div>
-            <div style={{ fontWeight: 600 }}>{price || DEFAULT_PRICE}</div>
+            <div className="riyasat-healing-guidance-session-editor__price">
+              {price || DEFAULT_PRICE}
+            </div>
           </div>
         </>
       );
@@ -490,14 +461,7 @@ function registerHealingGuidanceSessionsParent() {
           </InspectorControls>
 
           <div {...blockProps}>
-            <div
-              style={{
-                display: 'flex',
-                gap: '12px',
-                overflowX: 'auto',
-                alignItems: 'stretch',
-              }}
-            >
+            <div className="riyasat-healing-guidance-sessions__track">
               <InnerBlocks
                 allowedBlocks={[STANDARD_HEALING_GUIDANCE_SESSION_BLOCK]}
                 template={[

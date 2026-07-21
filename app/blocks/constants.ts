@@ -37,6 +37,12 @@ export const STANDARD_HEALING_GUIDANCE_SESSION_BLOCK =
   "standard/healing-guidance-session";
 export const STANDARD_TODAYS_MEDITATION_BLOCK =
   "standard/todays-meditation";
+export const STANDARD_HTML_BLOCK = "standard/html";
+export const ANGEL_CARDS_BLOCK = "core/angel-cards";
+export const ANGEL_CARD_ITEM_BLOCK = "core/angel-card-item";
+export const STANDARD_FAQS_BLOCK = "standard/faqs";
+export const STANDARD_FAQ_ITEM_BLOCK = "standard/faq-item";
+export const CONTACT_US_BLOCK = "core/contact-us";
 
 /**
  * Blocks kept registered + insertable. Everything else (all WP core blocks) is
@@ -69,4 +75,10 @@ export const RIYASAT_BLOCKS = [
   STANDARD_HEALING_GUIDANCE_SESSIONS_BLOCK,
   STANDARD_HEALING_GUIDANCE_SESSION_BLOCK,
   STANDARD_TODAYS_MEDITATION_BLOCK,
+  STANDARD_HTML_BLOCK,
+  ANGEL_CARDS_BLOCK,
+  ANGEL_CARD_ITEM_BLOCK,
+  STANDARD_FAQS_BLOCK,
+  STANDARD_FAQ_ITEM_BLOCK,
+  CONTACT_US_BLOCK,
 ];

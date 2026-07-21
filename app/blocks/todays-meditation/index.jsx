@@ -146,37 +146,15 @@ export function registerStandardTodaysMeditation() {
             </div>
           </InspectorControls>
 
-          <div
-            {...blockProps}
-            style={{
-              position: 'relative',
-              overflow: 'hidden',
-              minHeight: '240px',
-              borderRadius: '12px',
-              background: '#f3f4f6',
-            }}
-          >
+          <div {...blockProps}>
             {imageUrl ? (
               <img
                 src={imageUrl}
                 alt=""
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  minHeight: '240px',
-                  objectFit: 'cover',
-                }}
+                className="riyasat-todays-meditation-editor__image"
               />
             ) : (
-              <div
-                style={{
-                  minHeight: '240px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#6b7280',
-                }}
-              >
+              <div className="riyasat-todays-meditation-editor__placeholder">
                 Add a meditation image
               </div>
             )}
@@ -184,13 +162,7 @@ export function registerStandardTodaysMeditation() {
               <audio
                 src={audioUrl}
                 controls
-                style={{
-                  position: 'absolute',
-                  right: '16px',
-                  bottom: '16px',
-                  left: '16px',
-                  width: 'calc(100% - 32px)',
-                }}
+                className="riyasat-todays-meditation-editor__audio"
               />
             ) : null}
           </div>
