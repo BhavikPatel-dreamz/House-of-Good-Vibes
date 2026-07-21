@@ -1,0 +1,14 @@
+services:
+  app:
+    build:
+      context: .
+      network: host
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql://neondb_owner:npg_AexaZ2z6lTwV@ep-patient-waterfall-aq73npfv-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require}
+      SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
+      SHOPIFY_API_SECRET: ${SHOPIFY_API_SECRET:-}
+      SHOPIFY_APP_URL: ${SHOPIFY_APP_URL:-https://riyasat-builder.vercel.app}
+      SCOPES: ${SCOPES:-write_metaobject_definitions,write_metaobjects,write_products,read_files,write_files}
