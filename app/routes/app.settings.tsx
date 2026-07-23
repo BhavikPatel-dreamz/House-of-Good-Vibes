@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type ChangeEvent, type CSSProperties } from "react";
+import { useCallback, useRef, useState, type ChangeEvent, type CSSProperties, type ReactNode } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -14,10 +14,13 @@ import {
 } from "../lib/settings-resources";
 import {
   createMeditationEntry,
+  todayDateKey,
   type TodaysMeditationEntry,
 } from "../lib/todays-meditation";
 import { normalizeUploadFile } from "../lib/media-utils";
 import { authenticate } from "../shopify.server";
+
+type MeditationTab = "upcoming" | "past";
 
 const twoCol = "1fr 1fr";
 const threeCol = "minmax(220px, 0.9fr) minmax(240px, 1.1fr) minmax(220px, 1fr)";
@@ -58,6 +61,104 @@ const mediaPreviewBoxStyle: CSSProperties = {
   background: "#f6f6f7",
 };
 
+const iconButtonStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: "36px",
+  height: "36px",
+  borderRadius: "8px",
+  border: "1px solid #c9cccf",
+  background: "#fff",
+  cursor: "pointer",
+  padding: 0,
+  color: "#202223",
+};
+
+const tabButtonStyle = (active: boolean): CSSProperties => ({
+  minHeight: "36px",
+  padding: "8px 14px",
+  borderRadius: "8px",
+  border: active ? "1px solid #202223" : "1px solid #c9cccf",
+  background: active ? "#202223" : "#fff",
+  color: active ? "#fff" : "#202223",
+  fontSize: "13px",
+  fontWeight: 600,
+  cursor: "pointer",
+});
+
+function IconClone() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="7" y="7" width="10" height="10" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M13 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h1"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconEdit() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M4 13.5V16h2.5L14.9 7.6l-2.5-2.5L4 13.5z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M11.8 5.7l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconDelete() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M4 6h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M8 6V4.5A1.5 1.5 0 0 1 9.5 3h1A1.5 1.5 0 0 1 12 4.5V6" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M6.5 6l.6 9.2A1.5 1.5 0 0 0 8.6 16.5h2.8a1.5 1.5 0 0 0 1.5-1.3L13.5 6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function MeditationActionIcon({
+  label,
+  tone = "default",
+  onClick,
+  children,
+}: {
+  label: string;
+  tone?: "default" | "critical";
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      style={{
+        ...iconButtonStyle,
+        borderColor: tone === "critical" ? "#fda29b" : "#c9cccf",
+        color: tone === "critical" ? "#d72c0d" : "#202223",
+        background: tone === "critical" ? "#fff5f4" : "#fff",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 function formatMeditationDate(date: string): string {
   if (!date) return "Untitled date";
   const parsed = new Date(`${date}T00:00:00`);
@@ -80,6 +181,21 @@ function shortUrl(url: string): string {
     return url.length > 42 ? `${url.slice(0, 39)}…` : url;
   }
 }
+
+function isMeditationEntryComplete(entry: TodaysMeditationEntry): boolean {
+  return Boolean(entry.date.trim() && entry.audioUrl.trim());
+}
+
+const thumbnailStyle: CSSProperties = {
+  width: "56px",
+  height: "56px",
+  borderRadius: "8px",
+  objectFit: "cover",
+  border: "1px solid #e1e3e5",
+  flexShrink: 0,
+  display: "block",
+  background: "#f6f6f7",
+};
 
 async function pickCollection(): Promise<SettingsCollectionRef | null> {
   const picker =
@@ -214,6 +330,12 @@ export default function AppSettings() {
   const [uploadingMusic, setUploadingMusic] = useState(false);
   const [uploadingDefaultImage, setUploadingDefaultImage] = useState(false);
   const [uploadingEntryId, setUploadingEntryId] = useState<string | null>(null);
+  const [editingMeditationId, setEditingMeditationId] = useState<string | null>(
+    null,
+  );
+  const [meditationTab, setMeditationTab] = useState<MeditationTab>("upcoming");
+  const [deleteConfirmEntry, setDeleteConfirmEntry] =
+    useState<TodaysMeditationEntry | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const musicFileInputRef = useRef<HTMLInputElement>(null);
@@ -345,13 +467,28 @@ export default function AppSettings() {
   );
 
   const addMeditationEntry = useCallback(() => {
+    const next = createMeditationEntry();
     setSettings((current) => ({
       ...current,
-      todaysMeditationEntries: [
-        ...current.todaysMeditationEntries,
-        createMeditationEntry(),
-      ],
+      todaysMeditationEntries: [...current.todaysMeditationEntries, next],
     }));
+    setMeditationTab("upcoming");
+    setEditingMeditationId(next.id);
+    setSuccess(false);
+  }, []);
+
+  const cloneMeditationEntry = useCallback((entry: TodaysMeditationEntry) => {
+    const cloned = createMeditationEntry({
+      date: "",
+      audioUrl: entry.audioUrl,
+      imageUrl: entry.imageUrl,
+    });
+    setSettings((current) => ({
+      ...current,
+      todaysMeditationEntries: [...current.todaysMeditationEntries, cloned],
+    }));
+    setMeditationTab("upcoming");
+    setEditingMeditationId(cloned.id);
     setSuccess(false);
   }, []);
 
@@ -362,7 +499,20 @@ export default function AppSettings() {
         (entry) => entry.id !== id,
       ),
     }));
+    setEditingMeditationId((current) => (current === id ? null : current));
+    setDeleteConfirmEntry(null);
     setSuccess(false);
+  }, []);
+
+  const doneEditingMeditationEntry = useCallback((entry: TodaysMeditationEntry) => {
+    if (!isMeditationEntryComplete(entry)) {
+      setError("Each meditation entry needs a scheduled date and audio before it can be collapsed.");
+      return;
+    }
+    setError("");
+    setEditingMeditationId(null);
+    const today = todayDateKey();
+    setMeditationTab(entry.date < today ? "past" : "upcoming");
   }, []);
 
   const onDefaultImageChange = useCallback(
@@ -429,6 +579,15 @@ export default function AppSettings() {
   const meditationEntries = Array.isArray(settings.todaysMeditationEntries)
     ? settings.todaysMeditationEntries
     : [];
+  const todayKey = todayDateKey();
+  const pastEntries = meditationEntries.filter(
+    (entry) => entry.date && entry.date < todayKey,
+  );
+  const upcomingEntries = meditationEntries.filter(
+    (entry) => !entry.date || entry.date >= todayKey,
+  );
+  const visibleMeditationEntries =
+    meditationTab === "past" ? pastEntries : upcomingEntries;
 
   return (
     <s-page heading="Settings">
@@ -717,19 +876,22 @@ export default function AppSettings() {
               </s-stack>
 
               {settings.todaysMeditationDefaultImageUrl ? (
-                <s-stack direction="block" gap="small">
+                <s-stack direction="inline" gap="base" alignItems="center">
                   <img
                     src={settings.todaysMeditationDefaultImageUrl}
                     alt="Default meditation background"
                     style={{
-                      width: "100%",
-                      maxWidth: "280px",
+                      width: "72px",
+                      height: "72px",
                       borderRadius: "8px",
                       objectFit: "cover",
+                      border: "1px solid #e1e3e5",
+                      flexShrink: 0,
+                      display: "block",
                     }}
                   />
                   <s-text color="subdued">
-                    {settings.todaysMeditationDefaultImageUrl}
+                    {shortUrl(settings.todaysMeditationDefaultImageUrl)}
                   </s-text>
                 </s-stack>
               ) : (
@@ -754,38 +916,131 @@ export default function AppSettings() {
                 alignItems="center"
                 justifyContent="space-between"
               >
-                <s-stack direction="block" gap="small">
-                  <s-heading>Scheduled meditations</s-heading>
-                  <s-text color="subdued">
-                    {meditationEntries.length
-                      ? `${meditationEntries.length} scheduled ${
-                          meditationEntries.length === 1 ? "day" : "days"
-                        }`
-                      : "No dates scheduled yet"}
-                  </s-text>
-                </s-stack>
+                <s-heading>Scheduled meditations</s-heading>
                 <s-button variant="primary" onClick={addMeditationEntry}>
                   Add date
                 </s-button>
               </s-stack>
 
-              {meditationEntries.length === 0 ? (
+              <s-stack direction="inline" gap="small" alignItems="center">
+                <button
+                  type="button"
+                  style={tabButtonStyle(meditationTab === "upcoming")}
+                  onClick={() => setMeditationTab("upcoming")}
+                >
+                  Upcoming ({upcomingEntries.length})
+                </button>
+                <button
+                  type="button"
+                  style={tabButtonStyle(meditationTab === "past")}
+                  onClick={() => setMeditationTab("past")}
+                >
+                  Past ({pastEntries.length})
+                </button>
+              </s-stack>
+
+              {visibleMeditationEntries.length === 0 ? (
                 <s-box padding="base" border="base" borderRadius="base" background="subdued">
                   <s-stack direction="block" gap="small">
                     <s-text>
-                      Pre-schedule meditation audio for each day of the month.
+                      {meditationTab === "past"
+                        ? "No past meditations yet."
+                        : "No upcoming meditations scheduled."}
                     </s-text>
-                    <s-text color="subdued">
-                      Click <strong>Add date</strong> to create your first entry.
-                    </s-text>
+                    {meditationTab === "upcoming" ? (
+                      <s-text color="subdued">
+                        Click <strong>Add date</strong> to create your first entry.
+                      </s-text>
+                    ) : null}
                   </s-stack>
                 </s-box>
               ) : null}
 
-              {meditationEntries.map((entry, index) => {
+              {visibleMeditationEntries.map((entry) => {
+                const index = meditationEntries.findIndex((item) => item.id === entry.id);
                 const isUploading = uploadingEntryId === entry.id;
                 const missingAudio = !entry.audioUrl.trim();
                 const missingDate = !entry.date.trim();
+                const isComplete = isMeditationEntryComplete(entry);
+                const isEditing =
+                  editingMeditationId === entry.id || !isComplete;
+
+                if (!isEditing) {
+                  const previewImage =
+                    entry.imageUrl.trim() ||
+                    settings.todaysMeditationDefaultImageUrl.trim();
+
+                  return (
+                    <s-box
+                      key={entry.id}
+                      padding="base"
+                      border="base"
+                      borderRadius="base"
+                      background="base"
+                    >
+                      <s-stack
+                        direction="inline"
+                        gap="base"
+                        alignItems="center"
+                        justifyContent="space-between"
+                      >
+                        <s-stack direction="inline" gap="base" alignItems="center">
+                          {previewImage ? (
+                            <img
+                              src={previewImage}
+                              alt=""
+                              style={thumbnailStyle}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                ...thumbnailStyle,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "#6d7175",
+                                fontSize: "11px",
+                              }}
+                            >
+                              No img
+                            </div>
+                          )}
+                          <s-stack direction="block" gap="small">
+                            <s-heading>{formatMeditationDate(entry.date)}</s-heading>
+                            <s-text color="subdued">
+                              Entry {index + 1} · Audio ready
+                              {entry.imageUrl.trim()
+                                ? " · Custom image"
+                                : " · Default image"}
+                            </s-text>
+                          </s-stack>
+                        </s-stack>
+
+                        <s-stack direction="inline" gap="small" alignItems="center">
+                          <MeditationActionIcon
+                            label="Clone meditation"
+                            onClick={() => cloneMeditationEntry(entry)}
+                          >
+                            <IconClone />
+                          </MeditationActionIcon>
+                          <MeditationActionIcon
+                            label="Edit meditation"
+                            onClick={() => setEditingMeditationId(entry.id)}
+                          >
+                            <IconEdit />
+                          </MeditationActionIcon>
+                          <MeditationActionIcon
+                            label="Delete meditation"
+                            tone="critical"
+                            onClick={() => setDeleteConfirmEntry(entry)}
+                          >
+                            <IconDelete />
+                          </MeditationActionIcon>
+                        </s-stack>
+                      </s-stack>
+                    </s-box>
+                  );
+                }
 
                 return (
                   <s-box
@@ -808,18 +1063,34 @@ export default function AppSettings() {
                           </s-heading>
                           <s-text color="subdued">
                             Entry {index + 1}
-                            {missingDate || missingAudio
-                              ? " · Incomplete — date and audio are required"
-                              : " · Ready"}
+                            {isComplete
+                              ? " · Editing"
+                              : " · Incomplete — date and audio are required"}
                           </s-text>
                         </s-stack>
-                        <s-button
-                          variant="tertiary"
-                          tone="critical"
-                          onClick={() => removeMeditationEntry(entry.id)}
-                        >
-                          Remove
-                        </s-button>
+                        <s-stack direction="inline" gap="small" alignItems="center">
+                          {isComplete ? (
+                            <s-button
+                              variant="primary"
+                              onClick={() => doneEditingMeditationEntry(entry)}
+                            >
+                              Done
+                            </s-button>
+                          ) : null}
+                          <MeditationActionIcon
+                            label="Clone meditation"
+                            onClick={() => cloneMeditationEntry(entry)}
+                          >
+                            <IconClone />
+                          </MeditationActionIcon>
+                          <MeditationActionIcon
+                            label="Delete meditation"
+                            tone="critical"
+                            onClick={() => setDeleteConfirmEntry(entry)}
+                          >
+                            <IconDelete />
+                          </MeditationActionIcon>
+                        </s-stack>
                       </s-stack>
 
                       <s-grid gridTemplateColumns={threeCol} gap="base">
@@ -921,20 +1192,17 @@ export default function AppSettings() {
                             ) : null}
                           </s-stack>
                           {entry.imageUrl ? (
-                            <div style={mediaPreviewBoxStyle}>
+                            <div style={{ ...mediaPreviewBoxStyle, display: "flex", gap: "10px", alignItems: "center" }}>
                               <img
                                 src={entry.imageUrl}
                                 alt={`Meditation background for ${
                                   entry.date || "entry"
                                 }`}
-                                style={{
-                                  width: "100%",
-                                  maxHeight: "140px",
-                                  objectFit: "cover",
-                                  borderRadius: "8px",
-                                  display: "block",
-                                }}
+                                style={thumbnailStyle}
                               />
+                              <div style={fieldHelpStyle}>
+                                {shortUrl(entry.imageUrl)}
+                              </div>
                             </div>
                           ) : (
                             <div style={fieldHelpStyle}>
@@ -964,6 +1232,61 @@ export default function AppSettings() {
               />
             </s-stack>
           </s-box>
+
+          {deleteConfirmEntry ? (
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-meditation-title"
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 1000,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(0, 0, 0, 0.45)",
+                padding: "16px",
+              }}
+            >
+              <s-box
+                padding="base"
+                border="base"
+                borderRadius="base"
+                background="base"
+              >
+                <div style={{ width: "min(420px, 100%)" }}>
+                  <s-stack direction="block" gap="base">
+                    <s-heading id="delete-meditation-title">
+                      Delete meditation?
+                    </s-heading>
+                    <s-paragraph>
+                      This will permanently remove{" "}
+                      <strong>
+                        {formatMeditationDate(deleteConfirmEntry.date)}
+                      </strong>
+                      . This action cannot be undone.
+                    </s-paragraph>
+                    <s-stack direction="inline" gap="small" justifyContent="end">
+                      <s-button
+                        variant="secondary"
+                        onClick={() => setDeleteConfirmEntry(null)}
+                      >
+                        Cancel
+                      </s-button>
+                      <s-button
+                        variant="primary"
+                        tone="critical"
+                        onClick={() => removeMeditationEntry(deleteConfirmEntry.id)}
+                      >
+                        Delete
+                      </s-button>
+                    </s-stack>
+                  </s-stack>
+                </div>
+              </s-box>
+            </div>
+          ) : null}
         </s-stack>
       </s-section>
     </s-page>
