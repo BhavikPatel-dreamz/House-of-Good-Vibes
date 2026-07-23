@@ -9,6 +9,12 @@ import {
   type SettingsCollectionRef,
   type SettingsProductRef,
 } from "./settings-resources";
+import {
+  normalizeTodaysMeditationEntries,
+  parseTodaysMeditationEntries,
+  resolveTodaysMeditation,
+  type TodaysMeditationEntry,
+} from "./todays-meditation";
 
 export type ShopSettingsInput = {
   androidAppVersion: string;
@@ -23,6 +29,8 @@ export type ShopSettingsInput = {
   coursesTabCollection: SettingsCollectionRef;
   yagnasTabCollection: SettingsCollectionRef;
   yagnasTabProduct: SettingsProductRef;
+  todaysMeditationDefaultImageUrl: string;
+  todaysMeditationEntries: TodaysMeditationEntry[];
 };
 
 export const DEFAULT_SHOP_SETTINGS: ShopSettingsInput = {
@@ -38,6 +46,8 @@ export const DEFAULT_SHOP_SETTINGS: ShopSettingsInput = {
   coursesTabCollection: { ...EMPTY_COLLECTION_REF },
   yagnasTabCollection: { ...EMPTY_COLLECTION_REF },
   yagnasTabProduct: { ...EMPTY_PRODUCT_REF },
+  todaysMeditationDefaultImageUrl: "",
+  todaysMeditationEntries: [],
 };
 
 function serializeShopSettings(row: ShopSettings): ShopSettingsInput {
@@ -54,6 +64,10 @@ function serializeShopSettings(row: ShopSettings): ShopSettingsInput {
     coursesTabCollection: parseCollectionRef(row.coursesTabCollection),
     yagnasTabCollection: parseCollectionRef(row.yagnasTabCollection),
     yagnasTabProduct: parseProductRef(row.yagnasTabProduct),
+    todaysMeditationDefaultImageUrl: row.todaysMeditationDefaultImageUrl || "",
+    todaysMeditationEntries: normalizeTodaysMeditationEntries(
+      row.todaysMeditationEntries,
+    ),
   };
 }
 
@@ -100,6 +114,20 @@ export type PublicShopSettings = {
       product: SettingsProductRef;
     };
   };
+  todaysMeditation: {
+    defaultImageUrl: string | null;
+    entries: Array<{
+      date: string;
+      audioUrl: string;
+      imageUrl: string | null;
+    }>;
+    today: {
+      date: string;
+      audioUrl: string;
+      imageUrl: string | null;
+      usedDefaultImage: boolean;
+    } | null;
+  };
 };
 
 export function toPublicShopSettings(
@@ -108,6 +136,15 @@ export function toPublicShopSettings(
   const uploaded = settings.backgroundMusicFileUrl.trim();
   const external = settings.backgroundMusicUrl.trim();
   const resolvedUrl = resolveBackgroundMusicUrl(settings);
+  const defaultImage = settings.todaysMeditationDefaultImageUrl.trim();
+  const entries = normalizeTodaysMeditationEntries(
+    settings.todaysMeditationEntries,
+  );
+  const publishableEntries = parseTodaysMeditationEntries(entries);
+  const today = resolveTodaysMeditation({
+    entries: publishableEntries,
+    defaultImageUrl: defaultImage,
+  });
 
   return {
     forceUpdate: {
@@ -140,13 +177,103 @@ export function toPublicShopSettings(
         product: settings.yagnasTabProduct,
       },
     },
+    todaysMeditation: {
+      defaultImageUrl: defaultImage || null,
+      entries: publishableEntries.map((entry) => ({
+        date: entry.date,
+        audioUrl: entry.audioUrl,
+        imageUrl: entry.imageUrl.trim() || null,
+      })),
+      today: today
+        ? {
+            date: today.date,
+            audioUrl: today.audioUrl,
+            imageUrl: today.imageUrl || null,
+            usedDefaultImage: today.usedDefaultImage,
+          }
+        : null,
+    },
   };
 }
 
+export async function repairShopSettingsNulls(): Promise<void> {
+  // Some older rows/columns can contain SQL NULL even though Prisma schema
+  // expects non-null strings/bools/json. Normalize before Prisma reads.
+  await db.$executeRawUnsafe(`
+    UPDATE "ShopSettings"
+    SET
+      "androidAppVersion" = COALESCE("androidAppVersion", ''),
+      "androidPlayStoreUrl" = COALESCE("androidPlayStoreUrl", ''),
+      "iosAppVersion" = COALESCE("iosAppVersion", ''),
+      "iosAppStoreUrl" = COALESCE("iosAppStoreUrl", ''),
+      "backgroundMusicFileUrl" = COALESCE("backgroundMusicFileUrl", ''),
+      "backgroundMusicUrl" = COALESCE("backgroundMusicUrl", ''),
+      "androidForceUpdateEnabled" = COALESCE("androidForceUpdateEnabled", false),
+      "iosForceUpdateEnabled" = COALESCE("iosForceUpdateEnabled", false)
+    WHERE
+      "androidAppVersion" IS NULL
+      OR "androidPlayStoreUrl" IS NULL
+      OR "iosAppVersion" IS NULL
+      OR "iosAppStoreUrl" IS NULL
+      OR "backgroundMusicFileUrl" IS NULL
+      OR "backgroundMusicUrl" IS NULL
+      OR "androidForceUpdateEnabled" IS NULL
+      OR "iosForceUpdateEnabled" IS NULL
+  `);
+
+  // Newer columns may not exist until migrate deploy; ignore failures here.
+  try {
+    await db.$executeRawUnsafe(`
+      UPDATE "ShopSettings"
+      SET
+        "productsTabCollection" = COALESCE("productsTabCollection", '{}'::jsonb),
+        "coursesTabCollection" = COALESCE("coursesTabCollection", '{}'::jsonb),
+        "yagnasTabCollection" = COALESCE("yagnasTabCollection", '{}'::jsonb),
+        "yagnasTabProduct" = COALESCE("yagnasTabProduct", '{}'::jsonb)
+      WHERE
+        "productsTabCollection" IS NULL
+        OR "coursesTabCollection" IS NULL
+        OR "yagnasTabCollection" IS NULL
+        OR "yagnasTabProduct" IS NULL
+    `);
+  } catch {
+    // Column not migrated yet.
+  }
+
+  try {
+    await db.$executeRawUnsafe(`
+      UPDATE "ShopSettings"
+      SET
+        "todaysMeditationDefaultImageUrl" = COALESCE("todaysMeditationDefaultImageUrl", ''),
+        "todaysMeditationEntries" = COALESCE("todaysMeditationEntries", '[]'::jsonb)
+      WHERE
+        "todaysMeditationDefaultImageUrl" IS NULL
+        OR "todaysMeditationEntries" IS NULL
+    `);
+  } catch {
+    // Column not migrated yet.
+  }
+}
+
 export async function getShopSettings(shop: string): Promise<ShopSettingsInput> {
+  try {
+    await repairShopSettingsNulls();
+  } catch (error) {
+    // Columns from newer migrations may not exist yet; continue and let
+    // Prisma surface a clearer error if the read still fails.
+    console.warn("Failed to repair ShopSettings null values:", error);
+  }
+
   const row = await db.shopSettings.findFirst({ where: { shop } });
   if (!row) {
-    return { ...DEFAULT_SHOP_SETTINGS };
+    return {
+      ...DEFAULT_SHOP_SETTINGS,
+      productsTabCollection: { ...EMPTY_COLLECTION_REF },
+      coursesTabCollection: { ...EMPTY_COLLECTION_REF },
+      yagnasTabCollection: { ...EMPTY_COLLECTION_REF },
+      yagnasTabProduct: { ...EMPTY_PRODUCT_REF },
+      todaysMeditationEntries: [],
+    };
   }
   return serializeShopSettings(row);
 }
@@ -155,6 +282,12 @@ export async function upsertShopSettings(
   shop: string,
   input: ShopSettingsInput,
 ): Promise<ShopSettingsInput> {
+  try {
+    await repairShopSettingsNulls();
+  } catch (error) {
+    console.warn("Failed to repair ShopSettings null values:", error);
+  }
+
   const existing = await db.shopSettings.findFirst({ where: { shop } });
 
   const row = existing

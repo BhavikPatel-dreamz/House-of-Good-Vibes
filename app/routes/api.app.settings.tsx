@@ -10,6 +10,7 @@ import {
   parseCollectionRef,
   parseProductRef,
 } from "../lib/settings-resources";
+import { normalizeTodaysMeditationEntries } from "../lib/todays-meditation";
 import { authenticate } from "../shopify.server";
 
 function parseBoolean(value: unknown): boolean {
@@ -36,6 +37,12 @@ function parseSettingsBody(body: unknown): ShopSettingsInput | null {
     coursesTabCollection: parseCollectionRef(input.coursesTabCollection),
     yagnasTabCollection: parseCollectionRef(input.yagnasTabCollection),
     yagnasTabProduct: parseProductRef(input.yagnasTabProduct),
+    todaysMeditationDefaultImageUrl: String(
+      input.todaysMeditationDefaultImageUrl ?? "",
+    ),
+    todaysMeditationEntries: normalizeTodaysMeditationEntries(
+      input.todaysMeditationEntries,
+    ),
   };
 }
 

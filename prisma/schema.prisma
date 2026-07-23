@@ -102,6 +102,9 @@ model ShopSettings {
   coursesTabCollection      Json     @default("{}")
   yagnasTabCollection       Json     @default("{}")
   yagnasTabProduct          Json     @default("{}")
+  // Today's Meditation schedule: default fallback image + dated entries.
+  todaysMeditationDefaultImageUrl String @default("")
+  todaysMeditationEntries         Json   @default("[]")
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
 }
