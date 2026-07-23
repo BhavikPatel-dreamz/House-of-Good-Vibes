@@ -13,6 +13,10 @@ import {
   normalizeTodaysMeditationEntries,
   parseTodaysMeditationEntries,
   resolveTodaysMeditation,
+  splitMeditationEntriesByDate,
+  todayDateKey,
+  toPublicMeditationEntry,
+  type PublicMeditationEntry,
   type TodaysMeditationEntry,
 } from "./todays-meditation";
 
@@ -116,19 +120,59 @@ export type PublicShopSettings = {
   };
   todaysMeditation: {
     defaultImageUrl: string | null;
-    entries: Array<{
-      date: string;
-      audioUrl: string;
-      imageUrl: string | null;
-    }>;
-    today: {
-      date: string;
-      audioUrl: string;
-      imageUrl: string | null;
-      usedDefaultImage: boolean;
-    } | null;
+    todayDate: string;
+    entries: PublicMeditationEntry[];
+    past: PublicMeditationEntry[];
+    upcoming: PublicMeditationEntry[];
+    today: PublicMeditationEntry | null;
   };
 };
+
+export function buildTodaysMeditationPublicPayload(
+  settings: Pick<
+    ShopSettingsInput,
+    "todaysMeditationDefaultImageUrl" | "todaysMeditationEntries"
+  >,
+) {
+  const defaultImage = settings.todaysMeditationDefaultImageUrl.trim();
+  const publishableEntries = parseTodaysMeditationEntries(
+    settings.todaysMeditationEntries,
+  );
+  const today = todayDateKey();
+  const { past, upcoming } = splitMeditationEntriesByDate(
+    publishableEntries,
+    today,
+  );
+  const resolvedToday = resolveTodaysMeditation({
+    entries: publishableEntries,
+    defaultImageUrl: defaultImage,
+    date: today,
+  });
+
+  return {
+    defaultImageUrl: defaultImage || null,
+    todayDate: today,
+    entries: publishableEntries.map((entry) =>
+      toPublicMeditationEntry(entry, defaultImage),
+    ),
+    past: past.map((entry) => toPublicMeditationEntry(entry, defaultImage)),
+    upcoming: upcoming.map((entry) =>
+      toPublicMeditationEntry(entry, defaultImage),
+    ),
+    today: resolvedToday
+      ? {
+          id: resolvedToday.id,
+          date: resolvedToday.date,
+          audioUrl: resolvedToday.audioUrl,
+          imageUrl: resolvedToday.usedDefaultImage
+            ? null
+            : resolvedToday.imageUrl || null,
+          resolvedImageUrl: resolvedToday.imageUrl || null,
+          usedDefaultImage: resolvedToday.usedDefaultImage,
+        }
+      : null,
+  };
+}
 
 export function toPublicShopSettings(
   settings: ShopSettingsInput,
@@ -136,15 +180,6 @@ export function toPublicShopSettings(
   const uploaded = settings.backgroundMusicFileUrl.trim();
   const external = settings.backgroundMusicUrl.trim();
   const resolvedUrl = resolveBackgroundMusicUrl(settings);
-  const defaultImage = settings.todaysMeditationDefaultImageUrl.trim();
-  const entries = normalizeTodaysMeditationEntries(
-    settings.todaysMeditationEntries,
-  );
-  const publishableEntries = parseTodaysMeditationEntries(entries);
-  const today = resolveTodaysMeditation({
-    entries: publishableEntries,
-    defaultImageUrl: defaultImage,
-  });
 
   return {
     forceUpdate: {
@@ -177,22 +212,7 @@ export function toPublicShopSettings(
         product: settings.yagnasTabProduct,
       },
     },
-    todaysMeditation: {
-      defaultImageUrl: defaultImage || null,
-      entries: publishableEntries.map((entry) => ({
-        date: entry.date,
-        audioUrl: entry.audioUrl,
-        imageUrl: entry.imageUrl.trim() || null,
-      })),
-      today: today
-        ? {
-            date: today.date,
-            audioUrl: today.audioUrl,
-            imageUrl: today.imageUrl || null,
-            usedDefaultImage: today.usedDefaultImage,
-          }
-        : null,
-    },
+    todaysMeditation: buildTodaysMeditationPublicPayload(settings),
   };
 }
 

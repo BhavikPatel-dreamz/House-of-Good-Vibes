@@ -19,11 +19,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const settings = await getShopSettings(shop);
+  const publicSettings = toPublicShopSettings(settings);
 
   return Response.json(
     {
       success: true,
-      settings: toPublicShopSettings(settings),
+      settings: publicSettings,
+      todaysMeditation: publicSettings.todaysMeditation,
     },
     {
       headers: {

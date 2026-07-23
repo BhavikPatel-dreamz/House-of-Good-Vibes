@@ -80,11 +80,59 @@ export function todayDateKey(now = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
+export type PublicMeditationEntry = {
+  id: string;
+  date: string;
+  audioUrl: string;
+  /** Entry-specific image, if set. */
+  imageUrl: string | null;
+  /** Image the app should display (entry image or default fallback). */
+  resolvedImageUrl: string | null;
+  usedDefaultImage: boolean;
+};
+
+export function toPublicMeditationEntry(
+  entry: TodaysMeditationEntry,
+  defaultImageUrl: string,
+): PublicMeditationEntry {
+  const entryImage = entry.imageUrl.trim();
+  const fallback = defaultImageUrl.trim();
+  const resolvedImageUrl = entryImage || fallback || null;
+
+  return {
+    id: entry.id,
+    date: entry.date,
+    audioUrl: entry.audioUrl,
+    imageUrl: entryImage || null,
+    resolvedImageUrl,
+    usedDefaultImage: !entryImage && Boolean(fallback),
+  };
+}
+
+export function splitMeditationEntriesByDate(
+  entries: TodaysMeditationEntry[],
+  today = todayDateKey(),
+): {
+  past: TodaysMeditationEntry[];
+  upcoming: TodaysMeditationEntry[];
+} {
+  const past: TodaysMeditationEntry[] = [];
+  const upcoming: TodaysMeditationEntry[] = [];
+
+  for (const entry of entries) {
+    if (entry.date < today) past.push(entry);
+    else upcoming.push(entry);
+  }
+
+  return { past, upcoming };
+}
+
 export function resolveTodaysMeditation(options: {
   entries: TodaysMeditationEntry[];
   defaultImageUrl: string;
   date?: string;
 }): {
+  id: string;
   date: string;
   audioUrl: string;
   imageUrl: string;
@@ -101,6 +149,7 @@ export function resolveTodaysMeditation(options: {
   const imageUrl = entryImage || defaultImage;
 
   return {
+    id: entry.id,
     date,
     audioUrl: entry.audioUrl,
     imageUrl,

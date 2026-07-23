@@ -336,6 +336,8 @@ export default function AppSettings() {
   const [meditationTab, setMeditationTab] = useState<MeditationTab>("upcoming");
   const [deleteConfirmEntry, setDeleteConfirmEntry] =
     useState<TodaysMeditationEntry | null>(null);
+  const [confirmRemoveDefaultImage, setConfirmRemoveDefaultImage] =
+    useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const musicFileInputRef = useRef<HTMLInputElement>(null);
@@ -868,7 +870,7 @@ export default function AppSettings() {
                   <s-button
                     variant="tertiary"
                     tone="critical"
-                    onClick={() => setField("todaysMeditationDefaultImageUrl", "")}
+                    onClick={() => setConfirmRemoveDefaultImage(true)}
                   >
                     Remove
                   </s-button>
@@ -1232,6 +1234,61 @@ export default function AppSettings() {
               />
             </s-stack>
           </s-box>
+
+          {confirmRemoveDefaultImage ? (
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="remove-default-image-title"
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 1000,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(0, 0, 0, 0.45)",
+                padding: "16px",
+              }}
+            >
+              <s-box
+                padding="base"
+                border="base"
+                borderRadius="base"
+                background="base"
+              >
+                <div style={{ width: "min(420px, 100%)" }}>
+                  <s-stack direction="block" gap="base">
+                    <s-heading id="remove-default-image-title">
+                      Remove default background image?
+                    </s-heading>
+                    <s-paragraph>
+                      Entries without their own background image will no longer
+                      have a fallback image until you upload a new default.
+                    </s-paragraph>
+                    <s-stack direction="inline" gap="small" justifyContent="end">
+                      <s-button
+                        variant="secondary"
+                        onClick={() => setConfirmRemoveDefaultImage(false)}
+                      >
+                        Cancel
+                      </s-button>
+                      <s-button
+                        variant="primary"
+                        tone="critical"
+                        onClick={() => {
+                          setField("todaysMeditationDefaultImageUrl", "");
+                          setConfirmRemoveDefaultImage(false);
+                        }}
+                      >
+                        Remove
+                      </s-button>
+                    </s-stack>
+                  </s-stack>
+                </div>
+              </s-box>
+            </div>
+          ) : null}
 
           {deleteConfirmEntry ? (
             <div

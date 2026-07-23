@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 
 import {
+  buildTodaysMeditationPublicPayload,
   getShopSettings,
   toPublicShopSettings,
   upsertShopSettings,
@@ -24,6 +25,21 @@ function parseSettingsBody(body: unknown): ShopSettingsInput | null {
 
   const input = body as Record<string, unknown>;
 
+  // Support both flat fields and nested `todaysMeditation` payloads.
+  const nestedMeditation =
+    input.todaysMeditation && typeof input.todaysMeditation === "object"
+      ? (input.todaysMeditation as Record<string, unknown>)
+      : null;
+
+  const todaysMeditationDefaultImageUrl = String(
+    nestedMeditation?.defaultImageUrl ??
+      input.todaysMeditationDefaultImageUrl ??
+      "",
+  );
+  const todaysMeditationEntries = normalizeTodaysMeditationEntries(
+    nestedMeditation?.entries ?? input.todaysMeditationEntries,
+  );
+
   return {
     androidAppVersion: String(input.androidAppVersion ?? ""),
     androidPlayStoreUrl: String(input.androidPlayStoreUrl ?? ""),
@@ -37,12 +53,20 @@ function parseSettingsBody(body: unknown): ShopSettingsInput | null {
     coursesTabCollection: parseCollectionRef(input.coursesTabCollection),
     yagnasTabCollection: parseCollectionRef(input.yagnasTabCollection),
     yagnasTabProduct: parseProductRef(input.yagnasTabProduct),
-    todaysMeditationDefaultImageUrl: String(
-      input.todaysMeditationDefaultImageUrl ?? "",
-    ),
-    todaysMeditationEntries: normalizeTodaysMeditationEntries(
-      input.todaysMeditationEntries,
-    ),
+    todaysMeditationDefaultImageUrl,
+    todaysMeditationEntries,
+  };
+}
+
+function buildSettingsResponse(settings: ShopSettingsInput) {
+  const publicSettings = toPublicShopSettings(settings);
+
+  return {
+    success: true,
+    settings,
+    // Explicit Today's Meditation payload for admin + mobile consumers.
+    todaysMeditation: buildTodaysMeditationPublicPayload(settings),
+    public: publicSettings,
   };
 }
 
@@ -50,11 +74,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const settings = await getShopSettings(session.shop);
 
-  return Response.json({
-    success: true,
-    settings,
-    public: toPublicShopSettings(settings),
-  });
+  return Response.json(buildSettingsResponse(settings));
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -78,12 +98,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   try {
     const settings = await upsertShopSettings(session.shop, input);
-
-    return Response.json({
-      success: true,
-      settings,
-      public: toPublicShopSettings(settings),
-    });
+    return Response.json(buildSettingsResponse(settings));
   } catch (error) {
     console.error("Failed to save shop settings:", error);
     const message =
