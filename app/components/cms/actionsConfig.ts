@@ -213,6 +213,10 @@ export const riyasatActions: ActionDef[] = [
   { name: "OPEN_LOGIN_PAGE", label: "Open Login Page", previewHref: () => "/account/login" },
   { name: "OPEN_MY_ACCOUNT", label: "Open My Account", previewHref: () => "/account" },
   { name: "OPEN_ORDERS", label: "Open Orders", previewHref: () => "/account/orders" },
+  {
+    name: "OPEN_TODAYS_MEDITATION",
+    label: "Open Today's Meditation",
+  },
   { name: "LOGOUT", label: "Logout" },
   { name: "GO_BACK", label: "Go Back" },
 ];
